@@ -15,9 +15,9 @@ commands:
     description: gives one of your lives to another player
     usage: "Usage: /givelife (player)"
 
-  sl:
+  scarce:
     description: admin command for testing features
-    usage: "Usage: /sl (give|gamemode)"
+    usage: "Usage: /scarce (give|gamemode)"
 
   life:
     description: edits the amount of lives players have

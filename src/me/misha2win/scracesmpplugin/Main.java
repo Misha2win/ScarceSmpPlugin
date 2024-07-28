@@ -85,7 +85,7 @@ public class Main extends JavaPlugin {
 
 		
 		// SL command setup
-		registerCommand("sl", new SLCommandHandler(this), new SLTabCompleter(this));
+		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this), "sl");
 
 		// Life command setup
 		registerCommand("life", new LifeCommandHandler(this), new LifeTabCompleter(this));
