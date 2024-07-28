@@ -32,7 +32,7 @@ public class TpaCommandHandler implements CommandExecutor {
 		
 		// Sender must be a Player
 		if (!(sender instanceof Player)) {
-			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER);
+			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER); 
 			return true;
 		}
 		

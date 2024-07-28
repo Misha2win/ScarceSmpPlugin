@@ -18,7 +18,7 @@ public class AssassinCommandHandler implements CommandExecutor {
 	
 	public AssassinCommandHandler(Main plugin) {
 		this.plugin = plugin;
-	}
+	} 
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

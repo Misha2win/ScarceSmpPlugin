@@ -23,7 +23,7 @@ public class GiveLifeTabCompleter implements TabCompleter {
 		
 		if (args.length == 1) { // FIXME
 			suggestions = CommandUtil.getAllPlayersStartingWith(args[0]);
-		}
+		} 
 		
 		return suggestions;
 	}

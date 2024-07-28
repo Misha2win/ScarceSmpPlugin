@@ -22,7 +22,7 @@ public class SLTabCompleter implements TabCompleter {
 		this.plugin = plugin;
 	}
 
-	@Override
+	@Override 
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
 		ArrayList<String> suggestions = new ArrayList<>();
 		

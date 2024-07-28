@@ -16,7 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import me.misha2win.scracesmpplugin.Main;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 
-public class ItemManager {
+public class ItemManager { 
 	
 	public static final NamespacedKey EDEN_APPLE_NAMESPACE = new NamespacedKey(Main.getInstance(), "eden_apple");
 	

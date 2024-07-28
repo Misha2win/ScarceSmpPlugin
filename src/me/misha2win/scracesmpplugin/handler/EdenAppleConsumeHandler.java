@@ -20,7 +20,7 @@ public class EdenAppleConsumeHandler implements Listener {
 	
 	public EdenAppleConsumeHandler(Main plugin) {
 		this.plugin = plugin;
-	}
+	} 
 
 	@EventHandler
 	public void onPlayerEat(PlayerItemConsumeEvent e) {

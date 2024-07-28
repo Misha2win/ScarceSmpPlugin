@@ -22,7 +22,7 @@ public class TpaTabCompleter implements TabCompleter {
 		ArrayList<String> suggestions = new ArrayList<>();
 		
 		if (args.length == 1) {
-			suggestions = CommandUtil.getAllPlayersStartingWith(args[0]);
+			suggestions = CommandUtil.getAllPlayersStartingWith(args[0]); 
 		}
 		
 		return suggestions;

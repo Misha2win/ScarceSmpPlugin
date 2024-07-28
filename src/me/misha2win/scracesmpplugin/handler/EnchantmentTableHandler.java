@@ -35,7 +35,7 @@ public class EnchantmentTableHandler implements Listener {
 	
 	private Location eTableLoc;
 	
-	private boolean shrineActive;
+	private boolean shrineActive; 
 	
 	//private boolean
 	

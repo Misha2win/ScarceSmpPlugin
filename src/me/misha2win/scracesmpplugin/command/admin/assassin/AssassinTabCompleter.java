@@ -16,7 +16,7 @@ public class AssassinTabCompleter implements TabCompleter {
 	
 	public AssassinTabCompleter(Main plugin) {
 		this.plugin = plugin;
-	}
+	} 
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {

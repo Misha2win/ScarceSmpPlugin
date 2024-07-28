@@ -33,7 +33,7 @@ public class PlayerDeathListener implements Listener {
 		} else {
 			e.setKeepInventory(true);
 			e.getDrops().clear();
-		}
+		} 
 		
 		e.getDrops().add(getHead(e.getEntity(), ChatColor.DARK_RED + e.getDeathMessage()));
 		

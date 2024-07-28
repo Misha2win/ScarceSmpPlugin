@@ -20,7 +20,7 @@ public class PlayerJoinHandler implements Listener {
 	
 	public PlayerJoinHandler(Main plugin) {
 		this.plugin = plugin;
-	}
+	} 
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {

@@ -23,7 +23,7 @@ public class SLCommandHandler implements CommandExecutor {
 	
 	public SLCommandHandler(Main plugin) {
 		this.plugin = plugin;
-	}
+	} 
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

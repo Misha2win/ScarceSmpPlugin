@@ -26,7 +26,7 @@ public class GiveLifeCommandHandler implements CommandExecutor {
 		// Command must be valid
 		if (args.length != 1) {
 			return false;
-		}
+		} 
 		
 		// Sender must be a Player
 		if (!(sender instanceof Player)) {

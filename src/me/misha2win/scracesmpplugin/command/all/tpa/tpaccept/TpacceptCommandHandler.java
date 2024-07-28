@@ -24,7 +24,7 @@ public class TpacceptCommandHandler implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (args.length > 1) {
 			return false;
-		}
+		} 
 		
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER);
