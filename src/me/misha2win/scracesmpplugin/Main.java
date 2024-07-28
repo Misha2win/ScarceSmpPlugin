@@ -112,7 +112,7 @@ public class Main extends JavaPlugin {
 		rm.createMoltenGoldBucketRecipe();
 
 		// Setup scoreboard
-		setupScoreboard();
+		setupScoreboard(); // 
 		
 		try {
 			Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
