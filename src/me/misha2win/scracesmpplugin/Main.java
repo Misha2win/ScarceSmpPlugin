@@ -208,7 +208,7 @@ public class Main extends JavaPlugin {
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("edenapples scoreboard objective already exists!");
 		}
-	} //
+	}
 	
 	/**
 	 * Statically gets the plugin instance of this plugin.
