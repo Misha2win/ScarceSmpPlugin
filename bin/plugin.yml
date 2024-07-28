@@ -1,0 +1,40 @@
+name: ScarceLifeSmp
+version: 1.0
+author: Misha2win
+main: me.misha2win.scracesmpplugin.Main
+description: the plugin for the ScarceLifeSmp
+api-version: '1.20.6'
+
+commands:
+
+  assassin:
+    description: admin command for starting assassin event
+    usage: "Usage: /assassin (select|multi)"
+
+  givelife:
+    description: gives one of your lives to another player
+    usage: "Usage: /givelife (player)"
+
+  scarce:
+    description: admin command for testing features
+    usage: "Usage: /scarce (give|gamemode)"
+
+  life:
+    description: edits the amount of lives players have
+    usage: "Usage: /life (add|remove|set) (player|all) (number)"
+
+  tpaccept:
+    description: accepts an incoming teleport request
+    usage: "Usage: /tpaccept [player]"
+
+  tpcancel:
+    description: cancels a pending teleport request
+    usage: "Usage: /tpcancel"
+
+  tpdeny:
+    description: denies an incoming teleport request
+    usage: "Usage: /tpdeny [player]"
+
+  tpa:
+    description: allows a dead player to teleport to another player!
+    usage: "Usage: /tpa (player)"
