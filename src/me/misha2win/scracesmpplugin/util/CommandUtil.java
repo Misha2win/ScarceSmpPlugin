@@ -115,13 +115,15 @@ public class CommandUtil {
 	
 	public static int getAlivePlayersPercentage() {
 		int alivePlayers = 0;
+		int onlinePlayers = 0;
 		for (Player p : Bukkit.getOnlinePlayers()) {
+			onlinePlayers++;
 			if (LifeManager.getLives(p) > 0)  {
 				alivePlayers++;
 			}
 		}
 		
-		return (int)((double) alivePlayers / Bukkit.getOnlinePlayers().size() * 33);
+		return (int)(((double) alivePlayers / onlinePlayers) * 33);
 	}
 
 }

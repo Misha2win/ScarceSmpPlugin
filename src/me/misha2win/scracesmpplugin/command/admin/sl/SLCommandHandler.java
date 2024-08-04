@@ -111,6 +111,24 @@ public class SLCommandHandler implements CommandExecutor {
 		else if (args[0].equals("createbackup")) {
 			CommandUtil.logCommand(sender, "started creating a world backup");
 			WorldBackupManager.start(plugin); // XXX
+		} else if (args[0].equals("gc")) {
+			System.gc();
+//			int chunksAttemptedToUnload = 0;
+//			int unloadedChunks = 0;
+//			for (World world : Bukkit.getWorlds()) {
+//				world.save();
+//				for (Chunk chunk : world.getLoadedChunks()) {
+//					chunksAttemptedToUnload++;
+//					if (world.unloadChunk(chunk)) {
+//						unloadedChunks++;
+//					} else {
+//						Bukkit.getLogger().info("Could not unload chunk located in " + chunk.getWorld().getName() + " at " + chunk.getX() + " " + chunk.getZ() + ".");
+//						Bukkit.getLogger().info(chunk.toString());
+//						
+//					}
+//				}
+//			}
+//			Bukkit.getLogger().info("Unloaded " + unloadedChunks + " out of the " + chunksAttemptedToUnload + " attempted chunks to unload!");
 		}
 		else if (args[0].equals("test")) {
 			plugin.getWetSeasonHandler().startSeason();

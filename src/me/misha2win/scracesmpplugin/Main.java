@@ -41,23 +41,22 @@ public class Main extends JavaPlugin {
 
 	private long lastModified;
 	private boolean isNoLongerModified;
-	
+
 	private WetSeasonHandler wetSeasonHandler;
 	private AssassinHandler assassinHandler;
 
 	@Override
 	public void onEnable() {
 		File dir = new File("plugins/" + this.getName());
-        if (dir.exists()){
-            getLogger().info(this.getName() + " folder already exists!");
-        }
-        else {
-            dir.mkdir(); 
-            getLogger().info(this.getName() + " folder created!");
-        }
-		
+		if (dir.exists()) {
+			getLogger().info(this.getName() + " folder already exists!");
+		} else {
+			dir.mkdir();
+			getLogger().info(this.getName() + " folder created!");
+		}
+
 		String versionString = "Version 2.1";
-		
+
 		if (Bukkit.getPlayer("Milllennial") != null) {
 			Bukkit.getPlayer("Milllennial").sendMessage(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
 		}
@@ -77,13 +76,12 @@ public class Main extends JavaPlugin {
 
 		// Wet season handler
 		Bukkit.getPluginManager().registerEvents(wetSeasonHandler = new WetSeasonHandler(this), this);
-		
+
 		// Dead player handler
 		Bukkit.getPluginManager().registerEvents(new DeadPlayerHandler(this), this);
-		
+
 		Bukkit.getPluginManager().registerEvents(assassinHandler = new AssassinHandler(this), this);
 
-		
 		// SL command setup
 		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this), "sl");
 
@@ -98,10 +96,10 @@ public class Main extends JavaPlugin {
 		registerCommand("tpdeny", new TpdenyCommandHandler(this), new TpdenyTabCompleter(this));
 		registerCommand("tpcancel", new TpcancelCommandHandler(this), new TpcancelTabCompleter(this));
 		registerCommand("tpa", new TpaCommandHandler(this), new TpaTabCompleter(this));
-		
+
 		// assassin command setup
 		registerCommand("assassin", new AssassinCommandHandler(this), new AssassinTabCompleter(this));
-		
+
 		// Recipes setup
 		RecipeMaker rm = new RecipeMaker(this);
 		rm.createAppleOfEdenRecipe();
@@ -112,8 +110,8 @@ public class Main extends JavaPlugin {
 		rm.createMoltenGoldBucketRecipe();
 
 		// Setup scoreboard
-		setupScoreboard(); // 
-		
+		setupScoreboard();
+
 		try {
 			Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
 			getFileMethod.setAccessible(true);
@@ -122,7 +120,7 @@ public class Main extends JavaPlugin {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		// TODO Remove this when no longer testing!
 		Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
 			try {
@@ -147,11 +145,11 @@ public class Main extends JavaPlugin {
 			}
 		}, 20, 20);
 	}
-	
+
 	public WetSeasonHandler getWetSeasonHandler() {
 		return wetSeasonHandler;
 	}
-	
+
 	public AssassinHandler getAssassinHandler() {
 		return assassinHandler;
 	}
@@ -165,7 +163,7 @@ public class Main extends JavaPlugin {
 		if (Bukkit.getPlayer("Misha2win") != null) {
 			Bukkit.getPlayer("Misha2win").sendMessage(ChatColor.GREEN + "SL plugin is disabled!");
 		}
-		
+
 		if (Bukkit.getPlayer("strawburby") != null) {
 			Bukkit.getPlayer("strawburby").sendMessage(ChatColor.GREEN + "SL plugin is disabled!");
 		}
@@ -180,11 +178,13 @@ public class Main extends JavaPlugin {
 
 	public void setupScoreboard() {
 		try {
-			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("health", Criteria.HEALTH, ChatColor.DARK_RED + "❤");
+			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("health", Criteria.HEALTH,
+					ChatColor.DARK_RED + "❤");
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("health scoreboard team already exists!");
 		} finally {
-			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("health").setDisplaySlot(DisplaySlot.BELOW_NAME);
+			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("health")
+					.setDisplaySlot(DisplaySlot.BELOW_NAME);
 		}
 
 		try {
@@ -200,19 +200,20 @@ public class Main extends JavaPlugin {
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("lives scoreboard objective already exists!");
 		} finally {
-			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("lives").setDisplaySlot(DisplaySlot.PLAYER_LIST);
+			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("lives")
+					.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 		}
-		
+
 		try {
-			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("edenapples", Criteria.DUMMY, "Eden Apples Eaten");
+			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("edenapples", Criteria.DUMMY,
+					"Eden Apples Eaten");
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("edenapples scoreboard objective already exists!");
 		}
 	}
-	
+
 	/**
-	 * Statically gets the plugin instance of this plugin.
-	 * For static use only!
+	 * Statically gets the plugin instance of this plugin. For static use only!
 	 * 
 	 * @return this plugin's instance
 	 */

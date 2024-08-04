@@ -40,12 +40,26 @@ public class PlayerJoinHandler implements Listener {
 				PacketSender.sendTeamJoinPacket(e.getPlayer(), player);
 			}
 		}
+		
+		// Unfreeze server
+		Bukkit.getLogger().info("Unfreezing game");
+		Bukkit.getServerTickManager().setFrozen(false);
+		Bukkit.getLogger().info("Setting tick rate to 20");
+		Bukkit.getServerTickManager().setTickRate(20);
 	}
 	
 	@EventHandler
 	public void onDisconnectJoin(PlayerQuitEvent e) {
 		Bukkit.getWorlds().get(0).setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, CommandUtil.getAlivePlayersPercentage());
 		Bukkit.getLogger().info("New sleep percentage is: " + CommandUtil.getAlivePlayersPercentage());
+		
+		if (Bukkit.getOnlinePlayers().size() <= 1) {
+			Bukkit.getLogger().info("This was the last player online! Now server is empty!");
+			Bukkit.getLogger().info("Freezing game");
+			Bukkit.getServerTickManager().setFrozen(true);
+			Bukkit.getLogger().info("Setting tick rate to 1");
+			Bukkit.getServerTickManager().setTickRate(1);
+		}
 	}
 	
 }

@@ -28,7 +28,7 @@ public class SLTabCompleter implements TabCompleter {
 		
 		if(sender.isOp())
 			if (args.length == 1) { // Arg 1
-				suggestions = CommandUtil.getAllStartingWith(args[0], "gamemode", "give", "resetcooldowns", "tp", "createbackup");
+				suggestions = CommandUtil.getAllStartingWith(args[0], "gamemode", "give", "resetcooldowns", "tp", "createbackup", "gc");
 				
 			} else if (args.length == 2) { // Arg 2
 				if (args[0].equals("gamemode")) {
