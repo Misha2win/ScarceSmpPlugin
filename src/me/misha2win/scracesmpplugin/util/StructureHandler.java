@@ -994,40 +994,40 @@ public class StructureHandler {
 				"minecraft:air", "minecraft:air", "minecraft:air", "minecraft:air", "minecraft:air" };
 	}
 
-	public static void main(String[] args) {
-		String[] bd = getBlocks();
+	// public static void main(String[] args) {
+	// 	String[] bd = getBlocks();
 
-		ArrayList<String> strs = new ArrayList<>();
-		strs.add(bd[0]);
+	// 	ArrayList<String> strs = new ArrayList<>();
+	// 	strs.add(bd[0]);
 
-		int totalSkips = 0;
-		int skip = 1;
-		for (int i = 1; i < bd.length; i++) {
-			if (strs.get(i - 1 - totalSkips).equals(bd[i])) {
-				totalSkips++;
-				skip++;
-			} else {
-				if (skip > 1) {
-					strs.add(i - 1 - totalSkips, strs.remove(i - 1 - totalSkips) + " " + skip);
-					skip = 1;
-				}
-				strs.add(bd[i]);
-			}
-		}
+	// 	int totalSkips = 0;
+	// 	int skip = 1;
+	// 	for (int i = 1; i < bd.length; i++) {
+	// 		if (strs.get(i - 1 - totalSkips).equals(bd[i])) {
+	// 			totalSkips++;
+	// 			skip++;
+	// 		} else {
+	// 			if (skip > 1) {
+	// 				strs.add(i - 1 - totalSkips, strs.remove(i - 1 - totalSkips) + " " + skip);
+	// 				skip = 1;
+	// 			}
+	// 			strs.add(bd[i]);
+	// 		}
+	// 	}
 
-		// System.out.println(strs);
+	// 	// System.out.println(strs);
 
-		String s = "{ ";
-		for (String str : strs) {
-			s += "\"" + str + "\", ";
-		}
-		s += "}";
-		System.out.println(s);
+	// 	String s = "{ ";
+	// 	for (String str : strs) {
+	// 		s += "\"" + str + "\", ";
+	// 	}
+	// 	s += "}";
+	// 	System.out.println(s);
 
-		System.out.println("bd length: " + bd.length);
-		System.out.println("strs length: " + strs.size());
+	// 	System.out.println("bd length: " + bd.length);
+	// 	System.out.println("strs length: " + strs.size());
 		
-		placeETableStructure(null, -6, -18, -6);
-	}
+	// 	placeETableStructure(null, -6, -18, -6);
+	// }
 
 }

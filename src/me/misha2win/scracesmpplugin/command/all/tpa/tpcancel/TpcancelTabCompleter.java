@@ -5,14 +5,14 @@ import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 
 public class TpcancelTabCompleter implements TabCompleter {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public TpcancelTabCompleter(Main plugin) {
+	public TpcancelTabCompleter(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 

@@ -5,7 +5,11 @@ import org.bukkit.Particle;
 
 public class ParticleMaker {
 	
-	public static void createDome(Particle p, Location center, int radius, int detail) {
+	public static void createDome(Particle p, Location center, double radius, int detail) {
+		ParticleMaker.createDome(p, center,  radius, detail, 0);
+	}
+	
+	public static void createDome(Particle p, Location center, double radius, int detail, double speed) {
 		for (double i = 0; i < Math.PI; i += Math.PI / detail) {
 			double rad = radius * Math.sin(i);
 			double height = radius * Math.cos(i);
@@ -14,12 +18,16 @@ public class ParticleMaker {
 				double x = rad * Math.cos(j);
 				double z = rad * Math.sin(j);
 				
-				center.getWorld().spawnParticle(p, center.getX() + x, center.getY() + height, center.getZ() + z, 1);
+				center.getWorld().spawnParticle(p, center.getX() + x, center.getY() + height, center.getZ() + z, 1, 0, 0, 0, speed);
 			}
 		}
 	}
 	
 	public static void createCylinder(Particle particle, Location location, double radius, double height) {
+		ParticleMaker.createCylinder(particle, location, radius, height, 0);
+	}
+	
+	public static void createCylinder(Particle particle, Location location, double radius, double height, double speed) {
 		double px = location.getX();
 		double pz = location.getZ();
 		
@@ -29,7 +37,7 @@ public class ParticleMaker {
 			double pxOffset = radius * Math.sin(degree);
 			double pzOffset = radius * Math.cos(degree);
 			
-			location.getWorld().spawnParticle(particle, px + pxOffset, py, pz + pzOffset, 1);
+			location.getWorld().spawnParticle(particle, px + pxOffset, py, pz + pzOffset, 1, 0, 0, 0, speed);
 		}
 	}
 

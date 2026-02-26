@@ -7,16 +7,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.misha2win.scracesmpplugin.LifeManager;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpcancelCommandHandler implements CommandExecutor {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public TpcancelCommandHandler(Main plugin) {
+	public TpcancelCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -38,15 +38,15 @@ public class TpcancelCommandHandler implements CommandExecutor {
 			return true;
 		}
 		
-		if (!TpaCommandHandler.pendingRequests.containsKey(p)) {
+		if (!TpaCommandHandler.REQUESTS.containsKey(p)) {
 			p.sendMessage(ChatColor.RED + "You do not have any pending teleport requests!");
 			return true;
 		}
 		
-		Player p2 = TpaCommandHandler.pendingRequests.get(p);
+		Player p2 = TpaCommandHandler.REQUESTS.get(p);
 		p.sendMessage(ChatColor.GREEN + "You have cancelled your teleport request to " + p2.getName() + "!");
 		p2.sendMessage(ChatColor.RED + p.getName() + " has cancelled their teleport request to you!");
-		TpaCommandHandler.pendingRequests.remove(p);
+		TpaCommandHandler.REQUESTS.remove(p);
 		
 		CommandUtil.logCommand(sender, "cancelled thier teleport request to " + p2.getDisplayName());
 		

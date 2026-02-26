@@ -9,15 +9,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Score;
 
 import me.misha2win.scracesmpplugin.LifeManager;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class LifeCommandHandler implements CommandExecutor {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public LifeCommandHandler(Main plugin) {
+	public LifeCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	} 
 
@@ -34,28 +34,32 @@ public class LifeCommandHandler implements CommandExecutor {
 			return false;
 		}
 		
-		// Third argument must be a valid integer!
 		int lives = 0;
 		
+		// Third argument must be a valid integer!
 		try {
 			lives = Integer.valueOf(args[2]);
-			
-			if (lives < 0) {
-				sender.sendMessage(ChatColor.RED + "You cannot give less than 0 lives!");
-				return true;
-			}
 		} catch (Exception ex) {
 			sender.sendMessage(ChatColor.RED + "The third argument must be a valid integer!");
 			return true;
 		}
 		
-		// Receiving player must exist or sender uses all
+		// Third argument must be a positive integer!
+		if (lives < 0) {
+			sender.sendMessage(ChatColor.RED + "You cannot give less than 0 lives!");
+			return true;
+		}
+		
+		// Sender uses all
 		if (args[1].equals("all")) {
 			for (Player p : Bukkit.getOnlinePlayers()) {
 				onCommand(sender, cmd, label, new String[] { args[0], p.getName(), args[2] });
 			}
 			return true;
-		} else if (Bukkit.getPlayer(args[1]) == null) {
+		}
+		
+		// Receiving player must exist
+		if (Bukkit.getPlayer(args[1]) == null) {
 			sender.sendMessage(ChatColor.RED + "The second argument must be an online player! Use 'all' to give lives to everyone online!");
 			return true;
 		}
@@ -106,7 +110,7 @@ public class LifeCommandHandler implements CommandExecutor {
 		
 		if (playerScore.getScore() > numOfLives) {
 			playerScore.setScore(numOfLives + 1);
-			LifeManager.removeLife(player);
+			LifeManager.removeLife(player, playerScore.getScore() > 1);
 		} else if (playerScore.getScore() < numOfLives) {
 			playerScore.setScore(numOfLives - 1);
 			LifeManager.addLife(player);

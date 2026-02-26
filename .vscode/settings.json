@@ -1,0 +1,5 @@
+{
+  "java.project.exportJar.targetPath": "/Users/misha/Desktop/Hardcore Smp/plugins/${workspaceFolderBasename}.jar",
+  "editor.foldingImportsByDefault": true,
+  "editor.inlayHints.enabled": "off"
+}

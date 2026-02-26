@@ -4,15 +4,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.EntityEffect;
 import org.bukkit.GameMode;
-import org.bukkit.GameRule;
 import org.bukkit.Particle;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Warden;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.scoreboard.Team.Option;
-import org.bukkit.scoreboard.Team.OptionStatus;
 
+import me.misha2win.scracesmpplugin.handler.DeadPlayerHandler;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 import me.misha2win.scracesmpplugin.util.ParticleMaker;
@@ -38,7 +39,7 @@ public final class LifeManager {
 	}
 	
 	public static void onDeath(Player player) {
-		removeLife(player);
+		removeLife(player, false);
 		
 		if (getLives(player) == 0) {
 			player.getWorld().strikeLightningEffect(player.getLocation());
@@ -79,13 +80,14 @@ public final class LifeManager {
 		return ChatColor.RESET;
 	}
 	
-	public static void removeLife(Player player) {
+	public static void removeLife(Player player, boolean doTotem) {
 		Score playerScore = getLivesScoreboard(player);
 		playerScore.setScore(playerScore.getScore() - 1);
 		
-		player.playEffect(EntityEffect.TOTEM_RESURRECT);
+		if (doTotem)
+			player.playEffect(EntityEffect.TOTEM_RESURRECT);
 
-		ParticleMaker.createCylinder(Particle.ENCHANT, player.getLocation(), 0.8, 2);
+		ParticleMaker.createDome(Particle.ENCHANT, player.getLocation(), 1, 50, 1);
 		
 		updateTeam(player);
 		
@@ -99,17 +101,13 @@ public final class LifeManager {
 		
 		ParticleMaker.createCylinder(Particle.HAPPY_VILLAGER, player.getLocation(), 0.8, 2);
 		
-		updateTeam(player, playerScore.getScore() - 1 <= 0);
+		updateTeam(player);
 		
 		Bukkit.getLogger().info("Giving a life to " + player.getName() + "!");
 		Bukkit.getLogger().info(player.getName() + " now has " + playerScore.getScore() + " lives!");
 	}
-	
-	public static void updateTeam(Player player) {
-		updateTeam(player, false);
-	}
  	
-	public static void updateTeam(Player player, boolean wasDeadFlag) {
+	public static void updateTeam(Player player) {
 		Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 		Team playerTeam = scoreboard.getTeam(player.getUniqueId().toString());
 		if (playerTeam == null) {
@@ -124,34 +122,51 @@ public final class LifeManager {
 			if (getLives(player) > 0) {
 				player.setGameMode(GameMode.SURVIVAL);
 				player.setInvisible(false);
-				player.setCollidable(true);
+				player.setSleepingIgnored(false);
 				player.setAllowFlight(false);
-				playerTeam.setOption(Option.COLLISION_RULE, OptionStatus.FOR_OWN_TEAM);
+				player.setSilent(false);
+				player.setInvulnerable(false);
+				
+				// Make sure no wardens are allied with the player
+				for (World world : Bukkit.getWorlds()) {
+					for (Entity entity : world.getEntities()) {
+						if (entity instanceof Warden) {
+							CommandUtil.getTeamOfPlayer(player).removeEntry(entity.getUniqueId().toString());
+						}
+					}
+				}
 			} else {
 				player.setGameMode(GameMode.ADVENTURE);
 				player.setInvisible(true);
-				player.setCollidable(false);
+				player.setSleepingIgnored(true);
 				player.setAllowFlight(true);
-				playerTeam.setOption(Option.COLLISION_RULE, OptionStatus.NEVER);
-				Bukkit.getWorlds().get(0).setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, CommandUtil.getAlivePlayersPercentage());
-				Bukkit.getLogger().info("New sleep percentage is: " + CommandUtil.getAlivePlayersPercentage());
+				player.setSilent(true);
+				
+				// Make sure all wardens are allied with the player so that wardens won't attack ghosts
+				for (World world : Bukkit.getWorlds()) {
+					for (Entity entity : world.getEntities()) {
+						if (entity instanceof Warden) {
+							DeadPlayerHandler.clearWardenAnger((Warden) entity, player);
+						}
+					}
+				}
 			}
 		}
 		
 		playerTeam.setColor(getChatColor(getLives(player)));
 		
 		player.setCustomNameVisible(true);
-		player.setCustomName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.WHITE);
-		player.setDisplayName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.WHITE);
-		player.setPlayerListName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.WHITE);
+		player.setCustomName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.RESET);
+		player.setDisplayName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.RESET);
+		player.setPlayerListName(LifeManager.getChatColor(LifeManager.getLives(player)) + player.getName() + ChatColor.RESET);
 		
 		if (LifeManager.getLives(player) > 0) { // still alive
-			PacketSender.sendTeamColorPacket(player, ChatColor.GRAY);
-			
 			PacketSender.tellEveryonePlayerJoinedOwnTeam(player);
 		} else { // dead
 			PacketSender.tellEveryonePlayerJoinedTheirTeam(player);
 		}
+		
+		PacketSender.sendTeamColorPacket(player, ChatColor.GRAY);
 	}
 
 }

@@ -1,6 +1,5 @@
 package me.misha2win.scracesmpplugin.command.admin.sl;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,16 +8,16 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import me.misha2win.scracesmpplugin.Main;
-import me.misha2win.scracesmpplugin.recipe.ItemManager;
+import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.item.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class SLTabCompleter implements TabCompleter {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public SLTabCompleter(Main plugin) {
+	public SLTabCompleter(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -42,12 +41,7 @@ public class SLTabCompleter implements TabCompleter {
 				}
 			} else if (args.length == 3) { // Arg 3
 				if (args[0].equals("give")) {
-					Class<?> clazz = ItemManager.class;
-					ArrayList<String> items = new ArrayList<>();
-					for (Field field : clazz.getFields()) {
-						items.add(field.getName().toLowerCase());
-					}
-					
+					List<String> items = ItemRegistry.getRegisteredItems();
 					suggestions = CommandUtil.getAllStartingWith(args[2], items.toArray(new String[items.size()]));
 				}
 			}

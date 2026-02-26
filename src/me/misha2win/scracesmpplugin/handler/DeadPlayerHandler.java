@@ -1,15 +1,13 @@
 package me.misha2win.scracesmpplugin.handler;
 
-import java.util.HashMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Warden;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDispenseArmorEvent;
@@ -17,6 +15,7 @@ import org.bukkit.event.block.BlockReceiveGameEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -28,29 +27,33 @@ import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffectType;
 
 import me.misha2win.scracesmpplugin.LifeManager;
-import me.misha2win.scracesmpplugin.Main;
-import me.misha2win.scracesmpplugin.recipe.ItemManager;
+import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.util.CommandUtil;
+import me.misha2win.scracesmpplugin.util.PacketSender;
 
 public class DeadPlayerHandler implements Listener {
 	
-	public static final ItemStack[] allowedItems = new ItemStack[] {
-			ItemManager.CREEPER_SOUND_PLAYER,
-			ItemManager.GHOST_TOGGLE_HIDE,
-			ItemManager.GHOST_TOGGLE_SHOW
-	};
+	@SuppressWarnings("unused")
+	private ScarceLife plugin;
 	
-	private static final HashMap<Player, Mob> POSSESSIONS = new HashMap<>();
-	
-	private Main plugin;
-	
-	public DeadPlayerHandler(Main plugin) {
+	public DeadPlayerHandler(ScarceLife plugin) {
 		this.plugin = plugin;
+	}
+	
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (LifeManager.getLives(player) <= 0) {
+				PacketSender.sendTeamJoinPacket(e.getPlayer(), player);
+			}
+		}
 	}
 	
 	@EventHandler
@@ -90,109 +93,7 @@ public class DeadPlayerHandler implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent e) {
-		if (e.getItem() != null) {
-			if (e.getItem().isSimilar(ItemManager.CREEPER_SOUND_PLAYER)) {
-				if (e.getPlayer().getCooldown(Material.CREEPER_HEAD) == 0) {
-					ItemManager.onUse(plugin, e.getPlayer(), e.getItem());
-				}
-			} else if (e.getItem().isSimilar(ItemManager.GHOST_TOGGLE_SHOW)) {
-				if (e.getPlayer().getCooldown(Material.TINTED_GLASS) == 0) {
-					ItemManager.onUse(plugin, e.getPlayer(), e.getItem());
-				}
-			} else if (e.getItem().isSimilar(ItemManager.GHOST_TOGGLE_HIDE)) {
-				if (e.getPlayer().getCooldown(Material.GLASS) == 0) {
-					ItemManager.onUse(plugin, e.getPlayer(), e.getItem());
-				}
-			} else if (e.getItem().isSimilar(ItemManager.POSSESS_ITEM)) {
-				if (e.getPlayer().getCooldown(ItemManager.POSSESS_ITEM.getType()) == 0) {
-					if (POSSESSIONS.containsKey(e.getPlayer())) {
-						for (Player p : Bukkit.getOnlinePlayers()) {
-							p.showEntity(plugin, e.getPlayer());
-						}
-						e.getPlayer().setCooldown(ItemManager.POSSESS_ITEM.getType(), 20 * 60 * 5);
-						e.getPlayer().setWalkSpeed(0.2f);
-						e.getPlayer().showEntity(plugin, POSSESSIONS.get(e.getPlayer()));
-						POSSESSIONS.get(e.getPlayer()).setAware(true);
-						e.getPlayer().sendMessage(ChatColor.GREEN + "You are no longer possessing " + POSSESSIONS.get(e.getPlayer()).getName() + ".");
-						POSSESSIONS.remove(e.getPlayer());
-					}
-				}
-			}
-		}
-		
-		if (shouldIgnoreEvents(e.getPlayer()))
-			e.setCancelled(true);
-	}
-	
-//	@EventHandler
-//	public void onPlayerMove(PlayerRotateEvent e) {
-//		if (possessions.containsKey(e.getPlayer())) {
-//			Mob mob = possessions.get(e.getPlayer());
-//			mob.setVelocity(e.getVelocity());
-//		}
-//	}
-	
-//	@EventHandler
-//	public void onPlayerMove(PlayerVelocityEvent e) {
-//		if (possessions.containsKey(e.getPlayer())) {
-//			Mob mob = possessions.get(e.getPlayer());
-//			mob.setVelocity(e.getVelocity());
-//		}
-//	}
-	
-	@EventHandler
-	public void onPlayerMove(PlayerMoveEvent e) {
-		if (POSSESSIONS.containsKey(e.getPlayer())) {
-			Mob mob = POSSESSIONS.get(e.getPlayer());
-			mob.teleport(e.getPlayer());
-			mob.setFallDistance(e.getPlayer().getFallDistance());
-		}
-	}
-	
-	@EventHandler
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
-		ItemStack holdingItem = e.getPlayer().getInventory().getItemInMainHand();
-		
-		if (holdingItem != null) {
-			if (holdingItem.isSimilar(ItemManager.POSSESS_ITEM)) {
-				if (e.getRightClicked() instanceof Mob) {
-					if (e.getPlayer().getCooldown(holdingItem.getType()) == 0) {
-						if (!POSSESSIONS.containsKey(e.getPlayer())) {
-							e.getPlayer().sendMessage(ChatColor.GREEN + "You are now possessing " + e.getRightClicked().getName() + " for the next 5 minutes!");
-							e.getPlayer().setCooldown(holdingItem.getType(), 20 * 5);
-							Mob mob = (Mob) e.getRightClicked();
-							e.getPlayer().setWalkSpeed((float) mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue());
-							e.getPlayer().hideEntity(plugin, mob);
-							for (Player p : Bukkit.getOnlinePlayers()) {
-								p.hideEntity(plugin, e.getPlayer());
-							}
-							mob.setAware(false);
-							e.getPlayer().teleport(mob);
-							POSSESSIONS.put(e.getPlayer(), mob);
-							
-							Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-								if (POSSESSIONS.containsKey(e.getPlayer())) {
-									for (Player p : Bukkit.getOnlinePlayers()) {
-										p.showEntity(plugin, e.getPlayer());
-									}
-									
-									e.getPlayer().setCooldown(ItemManager.POSSESS_ITEM.getType(), 20 * 60 * 5);
-									e.getPlayer().setWalkSpeed(0.2f);
-									e.getPlayer().showEntity(plugin, mob);
-									
-									POSSESSIONS.get(e.getPlayer()).setAware(true);
-									e.getPlayer().sendMessage(ChatColor.GREEN + "You are no longer possessing " + POSSESSIONS.get(e.getPlayer()).getName() + ".");
-									POSSESSIONS.remove(e.getPlayer());
-								}
-								
-							}, 20 * 60);
-						}
-					}
-				}
-			}
-		}
-		
 		if (shouldIgnoreEvents(e.getPlayer()))
 			e.setCancelled(true);
 	}
@@ -226,9 +127,37 @@ public class DeadPlayerHandler implements Listener {
 		if (shouldIgnoreEvents(e.getEntity(), e.getCause() != DamageCause.KILL && e.getCause() != DamageCause.VOID && e.getCause() != DamageCause.SUICIDE))
 			e.setCancelled(true);
 	}
+	
+	@EventHandler
+	public void onSpectatorTeleport(PlayerTeleportEvent e) {
+	    if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
+
+	    Player player = e.getPlayer();
+
+	    if (LifeManager.getLives(player) <= 0) {
+	    	player.sendMessage(ChatColor.RED + "Nice try, but no.");
+	    	e.setCancelled(true);
+	    }
+	}
 
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+		if (e.getEntity() instanceof Player) {
+			Player victim = (Player) e.getEntity();
+			
+			if (e.getDamager() instanceof Player) {
+				Player damager = (Player) e.getDamager();
+				
+				if (LifeManager.getLives(victim) <= 0 && LifeManager.getLives(damager) >= 1) {
+					Location location = victim.getLocation().add(0, 50, 0);
+					while (location.getBlock().getType() != Material.AIR) {
+						location = location.add(0, 50, 0);
+					}
+					victim.teleport(location);
+				}
+			}
+		}
+		
 		if (shouldIgnoreEvents(e.getDamager(), e.getCause() != DamageCause.KILL && e.getCause() != DamageCause.VOID && e.getCause() != DamageCause.SUICIDE))
 			e.setCancelled(true);
 	}
@@ -252,6 +181,25 @@ public class DeadPlayerHandler implements Listener {
 			e.setCancelled(true);
 	}
 	
+	@EventHandler
+	public void onEntitySpawn(EntitySpawnEvent e) {
+		if (e.getEntity() instanceof Warden) {
+			for (Player player : CommandUtil.getDeadPlayers()) {
+				clearWardenAnger((Warden) e.getEntity(), player);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent e) {
+		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) return;
+		if (LifeManager.getLives(e.getPlayer()) > 0) return;
+		
+		e.getPlayer().removePotionEffect(PotionEffectType.DARKNESS);
+		e.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
+		e.getPlayer().setGameMode(GameMode.ADVENTURE);
+	}
+	
 	public static boolean shouldIgnoreEvents(Entity e) {
 		return shouldIgnoreEvents(e, true);
 	}
@@ -266,6 +214,11 @@ public class DeadPlayerHandler implements Listener {
 			
 		
 		return false;
+	}
+	
+	public static void clearWardenAnger(Warden warden, Player player) {
+		warden.setAnger(player, 0);
+		CommandUtil.getTeamOfPlayer(player).addEntry(warden.getUniqueId().toString());
 	}
 	
 }

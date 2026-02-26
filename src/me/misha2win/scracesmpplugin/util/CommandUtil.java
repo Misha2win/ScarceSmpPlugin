@@ -2,6 +2,7 @@ package me.misha2win.scracesmpplugin.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -16,6 +17,10 @@ public class CommandUtil {
 	
 	public static class Warnings {
 		public static final String MUST_BE_PLAYER = ChatColor.RED + "You must be a player to use this command!";
+	}
+	
+	public static String getRandom(String... strings) {
+		return strings[(int) (Math.random() * strings.length)];
 	}
 	
 	public static Player getRandomPlayer(Player... exclude) {
@@ -34,10 +39,41 @@ public class CommandUtil {
 			return null;
 	}
 	
-	public static Player getRandomPlayerWeighted(Player... exclude) {
+	public static Player[] getDeadPlayers() {
+		LinkedList<Player> playerList = new LinkedList<Player>();
+		
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (LifeManager.getLives(player) <= 0) {
+				playerList.add(player);
+			}
+		}
+		
+		return playerList.toArray(new Player[playerList.size()]);
+	}
+	
+	public static Player[] getAlivePlayers() {
+		LinkedList<Player> playerList = new LinkedList<Player>();
+		
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (LifeManager.getLives(player) > 0) {
+				playerList.add(player);
+			}
+		}
+		
+		return playerList.toArray(new Player[playerList.size()]);
+	}
+	
+	public static Player getRandomPlayerLifeWeighted(Player... exclude) {
 		List<Player> players = new ArrayList<>();
 		
-		for (Player player : players) {
+		outer:
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			for (Player excludedPlayer : exclude) {
+				if (player == excludedPlayer) {
+					continue outer;
+				}
+			}
+			
 			for (int i = 0; i < LifeManager.getLives(player); i++) {
 				players.add(player);
 			}
@@ -48,6 +84,21 @@ public class CommandUtil {
 			return players.get(0);
 		else
 			return null;
+	}
+	
+	public static ArrayList<String> getAllPlayersStartingWithExcludingSender(CommandSender sender, String name) {
+		ArrayList<String> names = new ArrayList<>();
+		
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			if (p.getName().toLowerCase().startsWith(name.toLowerCase())) {
+				if (!p.getName().equals(sender.getName())) {
+					names.add(p.getName());
+				}
+			}
+		}
+		Collections.sort(names);
+		
+		return names;
 	}
 	
 	public static ArrayList<String> getAllPlayersStartingWith(String name) {
@@ -77,8 +128,14 @@ public class CommandUtil {
 		return suggestions;
 	}
 	
-	public static void messageAllPlayers(String message) {
+	public static void messageAllPlayers(String message, Player... exclude) {
+		outer:
 		for (Player p : Bukkit.getOnlinePlayers()) {
+			for (Player excluded : exclude) {
+				if (p == excluded) {
+					continue outer;
+				}
+			}
 			p.sendMessage(message);
 		}
 	}
@@ -93,13 +150,8 @@ public class CommandUtil {
 	
 	public static void messageAllOpedPlayers(CommandSender sender, String message) {
 		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (p == sender) {
-				continue;
-			}
-			
-			if (p.isOp()) {
-				p.sendMessage(message);
-			}
+			if (p == sender) continue;
+			if (p.isOp()) p.sendMessage(message);
 		}
 	}
 	
@@ -123,7 +175,7 @@ public class CommandUtil {
 			}
 		}
 		
-		return (int)(((double) alivePlayers / onlinePlayers) * 33);
+		return (int) ((double) alivePlayers / onlinePlayers);
 	}
 
 }

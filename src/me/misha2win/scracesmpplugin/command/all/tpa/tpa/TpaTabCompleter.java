@@ -5,15 +5,15 @@ import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpaTabCompleter implements TabCompleter {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public TpaTabCompleter(Main plugin) {
+	public TpaTabCompleter(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -22,7 +22,7 @@ public class TpaTabCompleter implements TabCompleter {
 		ArrayList<String> suggestions = new ArrayList<>();
 		
 		if (args.length == 1) {
-			suggestions = CommandUtil.getAllPlayersStartingWith(args[0]); 
+			suggestions = CommandUtil.getAllPlayersStartingWithExcludingSender(sender, args[0]); 
 		}
 		
 		return suggestions;

@@ -7,16 +7,16 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpacceptCommandHandler implements CommandExecutor {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public TpacceptCommandHandler(Main plugin) {
+	public TpacceptCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -33,15 +33,15 @@ public class TpacceptCommandHandler implements CommandExecutor {
 		
 		Player p = (Player) sender;
 		
-		if (!TpaCommandHandler.pendingRequests.containsValue(p)) {
+		if (!TpaCommandHandler.REQUESTS.containsValue(p)) {
 			p.sendMessage(ChatColor.RED + "You do not have any pending teleport requests!");
 			return true;
 		}
 		
 		int numRequests = 0;
 		Player p2 = null;
-		for (Player value : TpaCommandHandler.pendingRequests.keySet()) {
-			if (TpaCommandHandler.pendingRequests.get(value).equals(p)) {
+		for (Player value : TpaCommandHandler.REQUESTS.keySet()) {
+			if (TpaCommandHandler.REQUESTS.get(value).equals(p)) {
 				if (p2 != null) {
 					if (args.length != 1) {
 						p.sendMessage(ChatColor.RED + "You have too many requests!");
@@ -65,7 +65,7 @@ public class TpacceptCommandHandler implements CommandExecutor {
 		p2.sendMessage(ChatColor.GREEN + p.getName() + " has accepted your request!");
 		p2.sendMessage(ChatColor.GREEN + "Teleporting you to " + p.getName() + "!");
 		p.sendMessage(ChatColor.GREEN + "Teleporting " + p2.getName() + " to you!");
-		TpaCommandHandler.pendingRequests.remove(p2);
+		TpaCommandHandler.REQUESTS.remove(p2);
 		p2.teleport(p);
 		
 		CommandUtil.logCommand(sender, "accepted " + p2.getDisplayName() + ChatColor.GRAY + "'s teleport request");

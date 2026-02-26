@@ -10,16 +10,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.misha2win.scracesmpplugin.LifeManager;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpaCommandHandler implements CommandExecutor {
 	
-	public static final HashMap<Player, Player> pendingRequests = new HashMap<>(); // teleporter, reciever
+	public static final HashMap<Player, Player> REQUESTS = new HashMap<>(); // teleporter, reciever
 	
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public TpaCommandHandler(Main plugin) {
+	public TpaCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -43,7 +43,7 @@ public class TpaCommandHandler implements CommandExecutor {
 			return true;
 		}
 		
-		if (pendingRequests.containsKey(p)) {
+		if (REQUESTS.containsKey(p)) {
 			p.sendMessage(ChatColor.RED + "You cannot send multiple teleport requests at once!");
 			return true;
 		}
@@ -61,10 +61,10 @@ public class TpaCommandHandler implements CommandExecutor {
 		
 		CommandUtil.logCommand(sender, "requested to teleport to " + p2.getDisplayName());
 		
-		pendingRequests.put(p, p2);
+		REQUESTS.put(p, p2);
 		Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-			if (pendingRequests.containsKey(p)) {
-				pendingRequests.remove(p);
+			if (REQUESTS.containsKey(p)) {
+				REQUESTS.remove(p);
 				p.sendMessage(ChatColor.RED + "Your teleport request to " + p2.getName() + " has expired!");
 				p2.sendMessage(ChatColor.RED + p.getName() + "'s teleport request to you has expired!");
 			}

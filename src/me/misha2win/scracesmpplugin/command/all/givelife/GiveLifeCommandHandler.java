@@ -9,15 +9,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import me.misha2win.scracesmpplugin.LifeManager;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class GiveLifeCommandHandler implements CommandExecutor {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public GiveLifeCommandHandler(Main plugin) {
+	public GiveLifeCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
@@ -97,7 +97,7 @@ public class GiveLifeCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		LifeManager.removeLife(p);
+		LifeManager.removeLife(p, true);
 		LifeManager.addLife(p2);
 		
 		p.sendMessage(ChatColor.GREEN + "You have gave one of your lives to " + p2.getName() + "!");

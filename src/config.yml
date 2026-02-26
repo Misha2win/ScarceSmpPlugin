@@ -1,0 +1,6 @@
+eTableCooldown: 36000
+eTableGlowTime: 36000
+
+ghostTogglePermanent: false
+ghostToggleCooldown: 6000
+ghostToggleDuration: 6000

@@ -1,6 +1,6 @@
 package me.misha2win.scracesmpplugin.command.admin.sl;
 
-import java.lang.reflect.Field;
+import java.util.function.Supplier;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,16 +12,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.WorldBackupManager;
-import me.misha2win.scracesmpplugin.recipe.ItemManager;
+import me.misha2win.scracesmpplugin.item.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class SLCommandHandler implements CommandExecutor {
 	
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public SLCommandHandler(Main plugin) {
+	public SLCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	} 
 
@@ -80,17 +80,11 @@ public class SLCommandHandler implements CommandExecutor {
 			
 			Player player = Bukkit.getPlayer(args[1]);
 			if (player != null) {
-				Class<?> clazz = ItemManager.class;
-				for (Field field : clazz.getFields()) {
-					if (field.getName().toLowerCase().equals(args[2])) {
-						try {
-							player.getInventory().addItem((ItemStack) field.get(ItemManager.class));
-							CommandUtil.logCommand(sender, "gave " + args[2] + " item to " + player.getDisplayName());
-							return true;
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
+				Supplier<ItemStack> customItem = ItemRegistry.get(args[2]);
+				if (customItem != null) {
+					player.getInventory().addItem(customItem.get());
+					CommandUtil.logCommand(sender, "gave " + args[2] + " item to " + player.getDisplayName());
+					return true;
 				}
 				
 				sender.sendMessage(ChatColor.RED + "Unknown item!");
@@ -131,7 +125,6 @@ public class SLCommandHandler implements CommandExecutor {
 //			Bukkit.getLogger().info("Unloaded " + unloadedChunks + " out of the " + chunksAttemptedToUnload + " attempted chunks to unload!");
 		}
 		else if (args[0].equals("test")) {
-			plugin.getWetSeasonHandler().startSeason();
 		} else if (args[0].equals("tp")) {
 			World w = Bukkit.getWorld(args[1]);
 			if (w != null) {

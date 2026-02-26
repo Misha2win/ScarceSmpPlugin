@@ -5,15 +5,15 @@ import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import me.misha2win.scracesmpplugin.Main;
+import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class GiveLifeTabCompleter implements TabCompleter {
 	
 	@SuppressWarnings("unused")
-	private Main plugin;
+	private ScarceLife plugin;
 	
-	public GiveLifeTabCompleter(Main plugin) {
+	public GiveLifeTabCompleter(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 
