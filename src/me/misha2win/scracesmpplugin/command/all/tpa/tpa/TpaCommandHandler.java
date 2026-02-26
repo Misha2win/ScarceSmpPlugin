@@ -14,11 +14,11 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpaCommandHandler implements CommandExecutor {
-	
+
 	public static final HashMap<Player, Player> REQUESTS = new HashMap<>(); // teleporter, reciever
-	
+
 	private ScarceLife plugin;
-	
+
 	public TpaCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
@@ -29,38 +29,41 @@ public class TpaCommandHandler implements CommandExecutor {
 		if (args.length != 1) {
 			return false;
 		}
-		
+
 		// Sender must be a Player
 		if (!(sender instanceof Player)) {
-			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER); 
+			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER);
 			return true;
 		}
-		
+
 		Player p = (Player) sender;
-		
+
 		if (LifeManager.getLives(p) > 0) {
 			p.sendMessage(ChatColor.RED + "You must be dead to use this command!");
 			return true;
 		}
-		
+
 		if (REQUESTS.containsKey(p)) {
 			p.sendMessage(ChatColor.RED + "You cannot send multiple teleport requests at once!");
 			return true;
 		}
-		
+
 		Player p2 = Bukkit.getPlayer(args[0]);
 		if (p2 == null) {
 			p.sendMessage(ChatColor.RED + "The first argument must be an online player!");
 			return true;
 		}
-		
+
+		if (p == p2) {
+			p.sendMessage(ChatColor.RED + "You cannot send a request to yourself!");
+			return true;
+		}
+
 		p.sendMessage(ChatColor.GREEN + "Teleport request sent to " + p2.getName() + ".");
 		p.sendMessage(ChatColor.GREEN + "They have 60 seconds to accept! Or you can cancel your request with /tpcancel");
 		p2.sendMessage(ChatColor.GREEN + p.getName() + " has requested to teleport to you!");
 		p2.sendMessage(ChatColor.GREEN + "Type '/tpaccept' to accept or '/tpdeny' to deny their teleport request. If you have multiple requests then specify the name of the person you want to accept or deny.");
-		
-		CommandUtil.logCommand(sender, "requested to teleport to " + p2.getDisplayName());
-		
+
 		REQUESTS.put(p, p2);
 		Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
 			if (REQUESTS.containsKey(p)) {
@@ -68,9 +71,9 @@ public class TpaCommandHandler implements CommandExecutor {
 				p.sendMessage(ChatColor.RED + "Your teleport request to " + p2.getName() + " has expired!");
 				p2.sendMessage(ChatColor.RED + p.getName() + "'s teleport request to you has expired!");
 			}
-			
+
 		}, 60 * 20);
-		
+
 		return true;
 	}
 

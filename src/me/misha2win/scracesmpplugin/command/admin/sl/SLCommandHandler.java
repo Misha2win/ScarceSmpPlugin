@@ -14,16 +14,16 @@ import org.bukkit.inventory.ItemStack;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.WorldBackupManager;
-import me.misha2win.scracesmpplugin.item.ItemRegistry;
+import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class SLCommandHandler implements CommandExecutor {
-	
+
 	private ScarceLife plugin;
-	
+
 	public SLCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
-	} 
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -31,79 +31,60 @@ public class SLCommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
 			return true;
 		}
-		
+
 		if (args.length < 1)
 			return false;
-		
+
 		if (args[0].equals("gamemode")) {
 			if ("l".startsWith("l")) {
 				sender.sendMessage(ChatColor.RED + "The gamemode subcommand does not work!");
 				return true;
 			}
-			
+
 			if (args.length < 2)
 				return false;
-				
+
 			if (args[1].equals("3rdlife")) {
 				// 3 Lives
 				sender.sendMessage(ChatColor.RED + "This is already the gamemode!");
-				CommandUtil.logCommand(sender, "set the live mode to 3rdlife");
+				CommandUtil.logCommand(sender, "Set the live mode to 3rdlife");
 			} else if (args[1].equals("lastlife")) {
 				// 2-6 Lives
 				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "set the live mode to lastlife");
+				CommandUtil.logCommand(sender, "Set the live mode to lastlife");
 				return true;
 			} else if (args[1].equals("doublelife")) {
 				// 3 Lives + Soulmates
 				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "set the live mode to doublelife");
+				CommandUtil.logCommand(sender, "Set the live mode to doublelife");
 				return true;
 			} else if (args[1].equals("limitedlife")) {
 				// 24 Hours + Death means lose an hour
 				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "set the live mode to limitedlife");
+				CommandUtil.logCommand(sender, "Set the live mode to limitedlife");
 				return true;
 			} else if (args[1].equals("secretlife")) {
 				// 3 Lives + Secret tasks
 				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "set the live mode to secretlife");
+				CommandUtil.logCommand(sender, "Set the live mode to secretlife");
 				return true;
 			} else {
 				sender.sendMessage(ChatColor.RED + "Invalid arguments!");
 				return true;
 			}
-			
+
 			Bukkit.broadcastMessage("Gamemode changed to " + ChatColor.GREEN + args[1] + ChatColor.WHITE + "!");
-		} else if (args[0].equals("give")) {
-			if (args.length < 2)
-				return false;
-			
-			Player player = Bukkit.getPlayer(args[1]);
-			if (player != null) {
-				Supplier<ItemStack> customItem = ItemRegistry.get(args[2]);
-				if (customItem != null) {
-					player.getInventory().addItem(customItem.get());
-					CommandUtil.logCommand(sender, "gave " + args[2] + " item to " + player.getDisplayName());
-					return true;
-				}
-				
-				sender.sendMessage(ChatColor.RED + "Unknown item!");
-				return true;
-			} else {
-				sender.sendMessage(ChatColor.RED + "The player " + args[1] + " does not exist!");
-				return true;
-			}
 		} else if (args[0].equals("resetcooldowns")) {
 			if (sender instanceof Player) {
 				for (Material mat : Material.values()) {
 					if (mat.isItem())
 						((Player) sender).setCooldown(mat, 0);
 				}
-				CommandUtil.logCommand(sender, "reset their item cooldowns");
+				CommandUtil.logCommand(sender, "Reset their item cooldowns");
 			}
 		}
 		else if (args[0].equals("createbackup")) {
-			CommandUtil.logCommand(sender, "started creating a world backup");
+			CommandUtil.logCommand(sender, "Started creating a world backup");
 			WorldBackupManager.start(plugin); // XXX
 		} else if (args[0].equals("gc")) {
 			System.gc();
@@ -118,7 +99,7 @@ public class SLCommandHandler implements CommandExecutor {
 //					} else {
 //						Bukkit.getLogger().info("Could not unload chunk located in " + chunk.getWorld().getName() + " at " + chunk.getX() + " " + chunk.getZ() + ".");
 //						Bukkit.getLogger().info(chunk.toString());
-//						
+//
 //					}
 //				}
 //			}
@@ -129,7 +110,7 @@ public class SLCommandHandler implements CommandExecutor {
 			World w = Bukkit.getWorld(args[1]);
 			if (w != null) {
 				((Player) sender).teleport(w.getSpawnLocation());
-				CommandUtil.logCommand(sender, "teleported to " + w.getName());
+				CommandUtil.logCommand(sender, "Teleported to " + w.getName());
 			} else {
 				String str = "";
 				for (World world : Bukkit.getWorlds())
@@ -140,7 +121,7 @@ public class SLCommandHandler implements CommandExecutor {
 		else {
 			return false;
 		}
-		
+
 		return true;
 	}
 

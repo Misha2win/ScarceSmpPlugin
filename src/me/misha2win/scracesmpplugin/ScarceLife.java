@@ -13,12 +13,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 
+import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceCommandHandler;
+import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLTabCompleter;
-import me.misha2win.scracesmpplugin.command.all.banishghost.BanishGhostCommandHandler;
-import me.misha2win.scracesmpplugin.command.all.banishghost.BanishGhostTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
@@ -33,11 +33,12 @@ import me.misha2win.scracesmpplugin.handler.DeadPlayerHandler;
 import me.misha2win.scracesmpplugin.handler.CustomItemEventHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerDeathHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
-import me.misha2win.scracesmpplugin.item.ItemRecipeRegistry;
-import me.misha2win.scracesmpplugin.item.ItemRegistry;
+import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
+import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class ScarceLife extends JavaPlugin {
-	
+
 	public static final String NAMESPACE = "scarcelife";
 
 	private long lastModified;
@@ -47,7 +48,7 @@ public class ScarceLife extends JavaPlugin {
 	public void onEnable() {
 		ItemRegistry.registerItems();
 		ItemRecipeRegistry.registerAll();
-		
+
 		File dir = new File("plugins/" + this.getName());
 		if (dir.exists()) {
 			getLogger().info(this.getName() + " folder already exists!");
@@ -55,34 +56,21 @@ public class ScarceLife extends JavaPlugin {
 			dir.mkdir();
 			getLogger().info(this.getName() + " folder created!");
 		}
-		
-		getConfig().set("ghostTogglePermanent", true);
-		
-		getConfig().set("eTableCooldown", 20 * 10);
-		getConfig().set("eTableGlowTime", 20 * 10);
 
 		String versionString = "Version 1.12.11.1";
 
-		if (Bukkit.getPlayer("Milllennial") != null) {
-			Bukkit.getPlayer("Milllennial").sendMessage(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
-		}
+		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
 
-		if (Bukkit.getPlayer("Misha2win") != null) {
-			Bukkit.getPlayer("Misha2win").sendMessage(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
-		}
-		
 		Bukkit.getPluginManager().registerEvents(new CustomItemEventHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerDeathHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new DeadPlayerHandler(this), this);
-		
-//		Bukkit.getPluginManager().registerEvents(new EnchantmentTableHandler(this), this);
-		
+
 		// Register commands
 		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this), "sl");
+		registerCommand("givescarce", new GiveScarceCommandHandler(this), new GiveScarceTabCompleter(this));
 		registerCommand("life", new LifeCommandHandler(this), new LifeTabCompleter(this));
 		registerCommand("givelife", new GiveLifeCommandHandler(this), new GiveLifeTabCompleter(this));
-		registerCommand("banish", new BanishGhostCommandHandler(this), new BanishGhostTabCompleter(this));
 		registerCommand("tpaccept", new TpacceptCommandHandler(this), new TpacceptTabCompleter(this));
 		registerCommand("tpdeny", new TpdenyCommandHandler(this), new TpdenyTabCompleter(this));
 		registerCommand("tpcancel", new TpcancelCommandHandler(this), new TpcancelTabCompleter(this));
@@ -131,13 +119,7 @@ public class ScarceLife extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		if (Bukkit.getPlayer("Milllennial") != null) {
-			Bukkit.getPlayer("Milllennial").sendMessage(ChatColor.GREEN + "SL plugin is disabled!");
-		}
-
-		if (Bukkit.getPlayer("Misha2win") != null) {
-			Bukkit.getPlayer("Misha2win").sendMessage(ChatColor.GREEN + "SL plugin is disabled!");
-		}
+		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is disabled!");
 	}
 
 	public void registerCommand(String commandName, CommandExecutor ce, TabCompleter tc, String... aliases) {
@@ -205,23 +187,23 @@ public class ScarceLife extends JavaPlugin {
 //				swaps[10 - i] = i - 1;
 //			}
 //		}
-//		
+//
 //		return swaps;
 //	}
-//	
+//
 //	public static void findForkedSeed(int[] swaps) {
-//		
+//
 //	}
-//	
+//
 //	public static int[] findPillarsArrayFromHeights(int[] heights) {
 //		if (heights.length != 10)
 //			throw new IllegalArgumentException();
-//		
+//
 //		int[] spikeVals = new int[10];
 //		for (int i = 0; i < heights.length; i++) {
 //			spikeVals[i] = (heights[i] - 76) / 3;
 //		}
-//		
+//
 //		return spikeVals;
 //	}
 //
@@ -229,11 +211,11 @@ public class ScarceLife extends JavaPlugin {
 //		int[] heights = new int[] { 85, 100, 103, 79, 82, 91, 94, 88, 76, 97 };
 //		int[] pillars = findPillarsArrayFromHeights(heights);
 //		int[] swaps = findSwaps(pillars);
-//		
+//
 //		System.out.println("provided pillar heights: " + Arrays.toString(heights));
 //		System.out.println("pillar numbers: " + Arrays.toString(pillars));
 //		System.out.println("swaps to pillar order: " + Arrays.toString(swaps));
-//		
+//
 //		findForkedSeed(swaps);
 //	}
 }

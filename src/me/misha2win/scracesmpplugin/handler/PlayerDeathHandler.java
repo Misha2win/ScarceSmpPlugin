@@ -11,12 +11,12 @@ import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.GhostBlink;
 import me.misha2win.scracesmpplugin.item.GhostRespawn;
-import me.misha2win.scracesmpplugin.item.ItemRegistry;
+import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 
 public class PlayerDeathHandler implements Listener {
-	
+
 	private ScarceLife plugin;
-	
+
 	public PlayerDeathHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
@@ -28,13 +28,13 @@ public class PlayerDeathHandler implements Listener {
 		} else {
 			e.setKeepInventory(true);
 			e.getDrops().clear();
-		} 
-		
+		}
+
 		Bukkit.getScheduler().runTask(plugin, () -> {
 			LifeManager.onDeath(e.getEntity());
 		});
 	}
-	
+
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent e) {
 		if (LifeManager.getLives(e.getPlayer()) == 0) {
@@ -49,5 +49,5 @@ public class PlayerDeathHandler implements Listener {
 			});
 		}
 	}
-	
+
 }

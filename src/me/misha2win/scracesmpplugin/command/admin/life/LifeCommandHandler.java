@@ -1,5 +1,7 @@
 package me.misha2win.scracesmpplugin.command.admin.life;
 
+import java.util.LinkedList;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -13,78 +15,82 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class LifeCommandHandler implements CommandExecutor {
-	
+
 	@SuppressWarnings("unused")
 	private ScarceLife plugin;
-	
+
 	public LifeCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
-	} 
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		// Sender must have op
 		if (!sender.isOp()) {
-			sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
+			sender.sendMessage(CommandUtil.Warnings.NO_PERMISSION);
 			return true;
 		}
-		
+
 		// Command must be valid
-		if (args.length != 3) {
+		if (args.length != 2 && args.length != 3) {
 			return false;
 		}
-		
+
 		int lives = 0;
-		
-		// Third argument must be a valid integer!
 		try {
-			lives = Integer.valueOf(args[2]);
+			if (args.length == 2) lives = Integer.valueOf(args[1]);
+			else lives = Integer.valueOf(args[2]);
 		} catch (Exception ex) {
-			sender.sendMessage(ChatColor.RED + "The third argument must be a valid integer!");
+			sender.sendMessage(ChatColor.RED + "You must provide a valid integer!");
 			return true;
 		}
-		
-		// Third argument must be a positive integer!
-		if (lives < 0) {
-			sender.sendMessage(ChatColor.RED + "You cannot give less than 0 lives!");
+
+		if (lives < 1) {
+			sender.sendMessage(ChatColor.RED + "You cannot give less than 1 life!");
 			return true;
 		}
-		
-		// Sender uses all
-		if (args[1].equals("all")) {
-			for (Player p : Bukkit.getOnlinePlayers()) {
-				onCommand(sender, cmd, label, new String[] { args[0], p.getName(), args[2] });
+
+		LinkedList<Player> players = new LinkedList<>();
+		if (args.length == 2 && sender instanceof Player) {
+			players.add((Player) sender);
+		} else if (args.length == 3) { // Selector provided
+			if (args[1].startsWith("@")) {
+				players.addAll(CommandUtil.getPlayersFromSelector(sender, args[1]));
+			} else {
+				players.add(Bukkit.getPlayer(args[1]));
 			}
+		}
+
+		if (players.size() <= 0) {
+			sender.sendMessage(ChatColor.RED + "You must provide an online player or selector!");
 			return true;
 		}
-		
-		// Receiving player must exist
-		if (Bukkit.getPlayer(args[1]) == null) {
-			sender.sendMessage(ChatColor.RED + "The second argument must be an online player! Use 'all' to give lives to everyone online!");
-			return true;
+
+		for (Player player : players) {
+			applyLifeAction(args[0], player, lives);
 		}
-		Player player = Bukkit.getPlayer(args[1]);
-		
-		// The first argument must be give, remove, or set
-		if (args[0].equals("add")) {
-			addLives(player, lives);
-			CommandUtil.logCommand(sender, "gave " + lives + " lives to " + player.getDisplayName());
-		} else if (args[0].equals("remove")) {
-			removeLives(player, lives);
-			CommandUtil.logCommand(sender, "removed " + lives + " lives from " + player.getDisplayName());
-		} else if (args[0].equals("set")) {
-			setLives(player, lives);
-			player.sendMessage(ChatColor.GOLD + "Your lives have been set to " + lives + "!");
-			CommandUtil.logCommand(sender, "set " + player.getDisplayName() + ChatColor.GRAY + "'s lives to " + lives);
+
+		if (players.size() == 1) {
+			CommandUtil.logCommand(sender, String.format("Set %s%s%%s's lives to %d", players.get(0).getDisplayName(), ChatColor.GRAY, lives));
 		} else {
-			sender.sendMessage(ChatColor.RED + "The first arguemnt must be 'give', 'remove', or 'set'!");
-			return true;
+			CommandUtil.logCommand(sender, String.format("Set %s player's lives to %d", players.size(), lives));
 		}
-	
-		
+
 		return true;
 	}
-	
+
+	public boolean applyLifeAction(String action, Player player, int lives) {
+		if (action.equals("add")) {
+			addLives(player, lives);
+		} else if (action.equals("remove")) {
+			removeLives(player, lives);
+		} else if (action.equals("set")) {
+			setLives(player, lives);
+		}
+
+		return false;
+	}
+
 	public void addLives(Player player, int numOfLives) {
 		setLives(player, LifeManager.getLivesScoreboard(player).getScore() + numOfLives);
 
@@ -92,9 +98,9 @@ public class LifeCommandHandler implements CommandExecutor {
 			player.sendMessage(ChatColor.GREEN + "You have received a live!");
 		else
 			player.sendMessage(ChatColor.GREEN + "You have received " + numOfLives + " lives!");
-		
+
 	}
-	
+
 	public void removeLives(Player player, int numOfLives) {
 		setLives(player, LifeManager.getLivesScoreboard(player).getScore() - numOfLives);
 
@@ -102,12 +108,12 @@ public class LifeCommandHandler implements CommandExecutor {
 			player.sendMessage(ChatColor.RED + "One life has been taking from you!");
 		else
 			player.sendMessage(ChatColor.RED + (numOfLives + " lives have been taken from you!"));
-		
+
 	}
-	
+
 	public void setLives(Player player, int numOfLives) {
 		Score playerScore = LifeManager.getLivesScoreboard(player);
-		
+
 		if (playerScore.getScore() > numOfLives) {
 			playerScore.setScore(numOfLives + 1);
 			LifeManager.removeLife(player, playerScore.getScore() > 1);

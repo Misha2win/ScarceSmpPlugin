@@ -17,12 +17,15 @@ import org.bukkit.potion.PotionEffectType;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
+import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.util.ParticleMaker;
 
 public class GhostBlink {
-	
+
 	public static String TYPE = "ghost_blink";
-	
+
 	public static void register() {
 		ItemRegistry.register(TYPE, GhostBlink::createItem);
 		ItemEventRouter.on(TYPE, PlayerInteractEvent.class, GhostBlink::onPlayerInteract);
@@ -30,37 +33,37 @@ public class GhostBlink {
 
 	private static ItemStack createItem() {
 		ItemStack echoShard = new ItemStack(Material.ECHO_SHARD, 1);
-		
+
 		ItemMeta meta = echoShard.getItemMeta();
 		meta.setMaxStackSize(1);
-		
+
 		meta.setDisplayName(ChatColor.GOLD + "Blink");
-		
+
 		ItemUtil.setType(meta, TYPE);
-		
+
 		echoShard.setItemMeta(meta);
-		
+
 		return echoShard;
 	}
-	
+
 	public static void onPlayerInteract(ScarceLife plugin, PlayerInteractEvent e) {
 		Player player = e.getPlayer();
-		
+
 		if (LifeManager.getLives(player) > 0) {
 			e.getPlayer().getInventory().setItemInMainHand(null);
 			e.getPlayer().sendMessage(ChatColor.RED + "You shouldn't have this item!");
 			return;
 		}
 		if (player.getCooldown(Material.ECHO_SHARD) != 0) return;
-		
+
 		ParticleMaker.createDome(Particle.SCULK_SOUL,  player.getLocation(), 0.8, 3, 0);
 		player.getWorld().playSound(player.getLocation(), Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, SoundCategory.PLAYERS, 0.05f, 0.1f);
 		player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, PotionEffect.INFINITE_DURATION, 255, false, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 255, false, false, false));
-		
+
 		player.setGameMode(GameMode.SPECTATOR);
 		Location previousLocation = player.getLocation().clone();
-		
+
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			if (player.getLocation().getBlock().getType() != Material.AIR) {
 				player.teleport(previousLocation);
@@ -75,5 +78,5 @@ public class GhostBlink {
 			LifeManager.updateTeam(player);
 		}, 15);
 	}
-	
+
 }

@@ -7,10 +7,6 @@ api-version: '1.21.11'
 
 commands:
 
-  assassin:
-    description: admin command for starting assassin event
-    usage: "Usage: /assassin (select | multi)"
-
   givelife:
     description: gives one of your lives to another player
     usage: "Usage: /givelife (player)"
@@ -18,6 +14,10 @@ commands:
   banish:
     description: banishes a ghost
     usage: "Usage: /banish (player)"
+
+  givescarce:
+      description: gives a scarce item to the recipient
+      usage: "Usage: /givescarce [player] [item] [count]"
 
   scarce:
     description: admin command for testing features

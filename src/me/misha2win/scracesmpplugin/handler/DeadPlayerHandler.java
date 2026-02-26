@@ -130,14 +130,14 @@ public class DeadPlayerHandler implements Listener {
 	
 	@EventHandler
 	public void onSpectatorTeleport(PlayerTeleportEvent e) {
-	    if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
+		if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
 
-	    Player player = e.getPlayer();
+		Player player = e.getPlayer();
 
-	    if (LifeManager.getLives(player) <= 0) {
-	    	player.sendMessage(ChatColor.RED + "Nice try, but no.");
-	    	e.setCancelled(true);
-	    }
+		if (LifeManager.getLives(player) <= 0) {
+			player.sendMessage(ChatColor.RED + "Nice try, but no.");
+			e.setCancelled(true);
+		}
 	}
 
 	@EventHandler

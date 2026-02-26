@@ -12,10 +12,10 @@ import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpdenyCommandHandler implements CommandExecutor {
-	
+
 	@SuppressWarnings("unused")
 	private ScarceLife plugin;
-	
+
 	public TpdenyCommandHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
@@ -25,19 +25,19 @@ public class TpdenyCommandHandler implements CommandExecutor {
 		if (args.length > 1) {
 			return false;
 		}
-		
+
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(CommandUtil.Warnings.MUST_BE_PLAYER);
 			return true;
 		}
-		
+
 		Player p = (Player) sender;
-		
+
 		if (!TpaCommandHandler.REQUESTS.containsValue(p)) {
 			p.sendMessage(ChatColor.RED + "You do not have any pending teleport requests!");
 			return true;
 		}
-		
+
 		int numRequests = 0;
 		Player p2 = null;
 		for (Player value : TpaCommandHandler.REQUESTS.keySet()) {
@@ -53,7 +53,7 @@ public class TpdenyCommandHandler implements CommandExecutor {
 				numRequests++;
 			}
 		}
-		
+
 		if (numRequests > 1) {
 			p2 = Bukkit.getPlayer(args[0]);
 			if (p2 == null) {
@@ -61,13 +61,11 @@ public class TpdenyCommandHandler implements CommandExecutor {
 				return true;
 			}
 		}
-		
+
 		p2.sendMessage(ChatColor.RED + p.getName() + " has denied your request!");
 		p.sendMessage(ChatColor.GREEN + "You denied " + p2.getName() + "'s teleport request!");
 		TpaCommandHandler.REQUESTS.remove(p2);
-		
-		CommandUtil.logCommand(sender, "denied " + p2.getDisplayName() + ChatColor.GRAY + "'s teleport request");
-		
+
 		return true;
 	}
 
