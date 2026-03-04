@@ -21,7 +21,7 @@ commands:
 
   scarce:
     description: admin command for testing features
-    usage: "Usage: /scarce (give | gamemode)"
+    usage: "Usage: /scarce (resetcooldowns | tp)"
 
   life:
     description: edits the amount of lives players have

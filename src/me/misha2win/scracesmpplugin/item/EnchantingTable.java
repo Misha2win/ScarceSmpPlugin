@@ -158,7 +158,7 @@ public class EnchantingTable {
 
 	private static String locationToString(Location location) {
 		return String.format(
-				"%5$s%1$d %2$d %3$d %6$sin the %5$s%4$s %s",
+				"%5$s%1$d %2$d %3$d %6$sin the %5$s%4$s%6$s",
 				location.getBlockX(), location.getBlockY(), location.getBlockZ(),
 				getWorldName(location),
 				ChatColor.GREEN, ChatColor.WHITE

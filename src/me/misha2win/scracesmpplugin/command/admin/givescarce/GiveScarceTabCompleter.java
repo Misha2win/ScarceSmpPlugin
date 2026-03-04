@@ -30,7 +30,7 @@ public class GiveScarceTabCompleter implements TabCompleter {
 		Bukkit.getLogger().info(Arrays.toString(args));
 
 		if (args.length == 1) { // Arg 1
-			suggestions.addAll(CommandUtil.getAllStartingWith(args[1], CommandUtil.getSelectors()));
+			suggestions.addAll(CommandUtil.getAllStartingWith(args[0], CommandUtil.getSelectors()));
 			suggestions.addAll(CommandUtil.getAllPlayersStartingWith(args[0]));
 		} else if (args.length == 2) { // Arg 2
 			List<String> items = ItemRegistry.getRegisteredItems();
