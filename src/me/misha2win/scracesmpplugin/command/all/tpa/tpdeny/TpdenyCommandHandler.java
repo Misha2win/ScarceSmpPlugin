@@ -22,6 +22,11 @@ public class TpdenyCommandHandler implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (!this.plugin.getConfig().getBoolean("commands.tpa.enabled")) {
+			sender.sendMessage(CommandUtil.Warnings.DISABLED);
+			return true;
+		}
+
 		if (args.length > 1) {
 			return false;
 		}

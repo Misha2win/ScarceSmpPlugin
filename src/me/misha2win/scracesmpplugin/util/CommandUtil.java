@@ -20,6 +20,7 @@ public class CommandUtil {
 	public static class Warnings {
 		public static final String MUST_BE_PLAYER = ChatColor.RED + "You must be a player to use this command!";
 		public static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to use this command!";
+		public static final String DISABLED = ChatColor.RED + "This command has been disabled in the config!";
 	}
 
 	public static String getRandom(String... strings) {

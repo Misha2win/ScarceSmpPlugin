@@ -25,6 +25,11 @@ public class TpaCommandHandler implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (!this.plugin.getConfig().getBoolean("commands.tpa.enabled")) {
+			sender.sendMessage(CommandUtil.Warnings.DISABLED);
+			return true;
+		}
+
 		// Command must be valid
 		if (args.length != 1) {
 			return false;

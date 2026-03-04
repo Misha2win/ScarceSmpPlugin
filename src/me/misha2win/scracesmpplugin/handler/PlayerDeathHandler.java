@@ -2,6 +2,7 @@ package me.misha2win.scracesmpplugin.handler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -44,20 +45,27 @@ public class PlayerDeathHandler implements Listener {
 	public void onPlayerRespawn(PlayerRespawnEvent e) {
 		if (LifeManager.getLives(e.getPlayer()) == 0) {
 			Bukkit.getScheduler().runTask(plugin, () -> {
+				FileConfiguration config = this.plugin.getConfig();
+
 				e.getPlayer().setAllowFlight(true);
-				e.getPlayer().sendTitle(ChatColor.RED + "You lost your last life!", ChatColor.RED + "You are now a ghost!", 20, 20 * 5, 20);
-				e.getPlayer().sendMessage(ChatColor.GREEN + "You may now fly around and use the /tpa command to teleport to other players!");
 				e.getPlayer().teleport(e.getPlayer().getLastDeathLocation());
 				LifeManager.updateTeam(e.getPlayer());
 
-				if (this.plugin.getConfig().getBoolean("ghost.give-items")) {
-					if (this.plugin.getConfig().getBoolean("items.blink.enabled")) {
+				if (config.getBoolean("ghost.give-items")) {
+					if (config.getBoolean("items.blink.enabled")) {
 						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostBlink.TYPE).get());
 					}
 
-					if (this.plugin.getConfig().getBoolean("items.respawn.enabled")) {
+					if (config.getBoolean("items.respawn.enabled")) {
 						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostRespawn.TYPE).get());
 					}
+				}
+
+				e.getPlayer().sendTitle(ChatColor.RED + "You lost your last life!", ChatColor.RED + "You are now a ghost!", 20, 20 * 5, 20);
+				if (config.getBoolean("commands.tpa.enabled") && config.getBoolean("commands.tpa.only-ghosts")) {
+					e.getPlayer().sendMessage(ChatColor.GREEN + "You may now fly around and use the /tpa command to teleport to other players!");
+				} else {
+					e.getPlayer().sendMessage(ChatColor.GREEN + "You may now fly around!");
 				}
 			});
 		}

@@ -9,6 +9,15 @@ death:
   drop-head: true # If true, players will drop their head that says their death message.
   keep-inventory: true # If true, players keep their inventory unless they lost their last life.
 
+commands:
+
+  tpa: # Command that allows players to teleport to each other
+    enabled: true
+    only-ghosts: true # If true, only ghosts will be able to request teleporting to other players (dead or alive).
+
+  givelife:
+    enabled: true
+
 items:
 
   blink: # Item that allows ghosts to blink (temporary spectator mode).

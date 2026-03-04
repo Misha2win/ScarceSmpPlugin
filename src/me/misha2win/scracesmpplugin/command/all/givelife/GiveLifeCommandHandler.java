@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class GiveLifeCommandHandler implements CommandExecutor {
 
@@ -22,6 +23,11 @@ public class GiveLifeCommandHandler implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (!this.plugin.getConfig().getBoolean("commands.givelife.enabled")) {
+			sender.sendMessage(CommandUtil.Warnings.DISABLED);
+			return true;
+		}
+
 		// Command must be valid
 		if (args.length != 1) {
 			return false;
