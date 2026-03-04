@@ -2,7 +2,7 @@ lives:
   max: 4 # Max lives a player can have at once. <1 is infinite.
 
 ghost:
-  enabled: true # If true, players wih 0 lives won't be kicked and be allowed to respawn in adventure mode.
+  enabled: true # If true, players with 0 lives won't be kicked and be allowed to respawn in adventure mode.
   give-items: true # If true, ghosts receive their ghost items when they respawn.
 
 death:
@@ -11,11 +11,11 @@ death:
 
 commands:
 
-  tpa: # Command that allows players to teleport to each other
+  tpa: # Command that allows players to teleport to each other.
     enabled: true
-    only-ghosts: true # If true, only ghosts will be able to request teleporting to other players (dead or alive).
+    only-ghosts: true # If true, only ghosts can send teleport requests.
 
-  givelife:
+  givelife: # Command that allows player to give each other their lives.
     enabled: true
 
 items:
@@ -35,5 +35,5 @@ items:
 
   enchanting-table:
     enabled: true # If true, only one enchanting table can exist at once and make people who take it cursed.
-    glow-ticks: 1200 # 1 minute
+    glow-ticks: 1200 # Time the table glows after being placed (1 minute)
     pickup-cooldown-ticks: 12000 # 10 minutes
