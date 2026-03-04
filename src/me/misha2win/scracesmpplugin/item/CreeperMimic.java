@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -33,7 +34,7 @@ public class CreeperMimic {
 		ItemMeta headMeta = creeperPlayer.getItemMeta();
 		headMeta.setMaxStackSize(1);
 
-		headMeta.setDisplayName(ChatColor.GOLD + "Play Creeper Sound");
+		headMeta.setDisplayName(ChatColor.GOLD + "Mimic Creeper");
 
 		ArrayList<String> headLore = new ArrayList<>();
 		headMeta.setLore(headLore);
@@ -46,10 +47,17 @@ public class CreeperMimic {
 	}
 
 	public static void onPlayerInteract(ScarceLife plugin, PlayerInteractEvent e) {
-		if (LifeManager.getLives(e.getPlayer()) > 0) return;
-		if (e.getPlayer().getCooldown(Material.CREEPER_HEAD) != 0) return;
+		Player player = e.getPlayer();
 
-		Creeper creeper = (Creeper) e.getPlayer().getWorld().spawnEntity(e.getPlayer().getLocation().add(0, 1, 0), EntityType.CREEPER);
+		if (LifeManager.getLives(player) > 0) {
+			player.getInventory().setItemInMainHand(null);
+			player.sendMessage(ChatColor.RED + "You shouldn't have this item!");
+			return;
+		}
+
+		if (player.getCooldown(Material.CREEPER_HEAD) != 0) return;
+
+		Creeper creeper = (Creeper) player.getWorld().spawnEntity(player.getLocation().add(0, 1, 0), EntityType.CREEPER);
 		creeper.setInvulnerable(true);
 		creeper.setInvisible(true);
 		creeper.setGravity(false);
@@ -60,15 +68,12 @@ public class CreeperMimic {
 
 		ItemStack creeperHead = new ItemStack(Material.CREEPER_HEAD);
 		creeperHead.addEnchantment(Enchantment.BINDING_CURSE, 1);
-		e.getPlayer().getEquipment().setHelmet(creeperHead);
-		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-			@Override
-			public void run() {
-				e.getPlayer().getEquipment().setHelmet(null);
-			}
+		player.getEquipment().setHelmet(creeperHead);
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			player.getEquipment().setHelmet(null);
 		}, 20 * 5);
 
-		e.getPlayer().setCooldown(Material.CREEPER_HEAD, 20 * 60 * 5);
+		player.setCooldown(Material.CREEPER_HEAD, plugin.getConfig().getInt("items.creeper-mimic.cooldown-ticks"));
 	}
 
 }

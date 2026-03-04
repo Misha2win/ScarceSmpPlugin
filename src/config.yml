@@ -29,6 +29,14 @@ items:
     enabled: true
     cooldown-ticks: 20 # 1 second
 
+  creeper-mimic: # Allows ghosts to spawn a fake creeper to explode (doesn't damage anything).
+    enabled: false # Item is not fully implemented
+    cooldown-ticks: 400 # 20 seconds
+
+  ghost-diamond: # Allows ghosts to spawn ghost diamond ore to troll alive players
+    enabled: false # Item is not fully implemented
+    cooldown-ticks: 20 # 1 second
+
   eden-apple: # Item that when eaten gives the player an extra life.
     enabled: true
     max: -1 # Limit the number of apples a player can eat. <1 means infinite eden apples.

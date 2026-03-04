@@ -10,7 +10,9 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.item.CreeperMimic;
 import me.misha2win.scracesmpplugin.item.GhostBlink;
+import me.misha2win.scracesmpplugin.item.GhostDiamond;
 import me.misha2win.scracesmpplugin.item.GhostRespawn;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 
@@ -58,6 +60,14 @@ public class PlayerDeathHandler implements Listener {
 
 					if (config.getBoolean("items.respawn.enabled")) {
 						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostRespawn.TYPE).get());
+					}
+
+					if (config.getBoolean("items.creeper-mimic.enabled")) {
+						e.getPlayer().getInventory().addItem(ItemRegistry.get(CreeperMimic.TYPE).get());
+					}
+
+					if (config.getBoolean("items.ghost-diamond.enabled")) {
+						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostDiamond.TYPE).get());
 					}
 				}
 
