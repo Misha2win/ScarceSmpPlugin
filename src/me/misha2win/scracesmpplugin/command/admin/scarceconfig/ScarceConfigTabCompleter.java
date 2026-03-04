@@ -2,7 +2,6 @@ package me.misha2win.scracesmpplugin.command.admin.scarceconfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -30,8 +29,12 @@ public class ScarceConfigTabCompleter implements TabCompleter {
 			suggestions.addAll(CommandUtil.getAllStartingWith(args[0], "get", "set"));
 		} else if (args.length == 2) { // Arg 2
 			if (args[0].equals("get") || args[0].equals("set")) {
-				Set<String> keys = plugin.getConfig().getKeys(true);
-				suggestions.addAll(CommandUtil.getAllStartingWith(args[1], keys.toArray(new String[keys.size()])));
+				for (String key : plugin.getConfig().getKeys(true)) {
+					if (plugin.getConfig().isConfigurationSection(key)) continue;
+
+					suggestions.addAll(CommandUtil.getAllStartingWith(args[1], key));
+				}
+
 			}
 		}
 
