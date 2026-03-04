@@ -23,15 +23,20 @@ public class PlayerDeathHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e) {
-		if (LifeManager.getLives(e.getEntity()) <= 1) { // Last life (before processing)
-			e.setKeepInventory(false);
-		} else {
-			e.setKeepInventory(true);
-			e.getDrops().clear();
+		if (this.plugin.getConfig().getBoolean("ghost.keep-inventory")) {
+			if (LifeManager.getLives(e.getEntity()) <= 1) { // Last life (before processing)
+				e.setKeepInventory(false);
+			} else {
+				e.setKeepInventory(true);
+				e.getDrops().clear();
+			}
 		}
 
 		Bukkit.getScheduler().runTask(plugin, () -> {
 			LifeManager.onDeath(e.getEntity());
+			if (!this.plugin.getConfig().getBoolean("ghost.enabled")) {
+				e.getEntity().kickPlayer("You lost your last life!");
+			}
 		});
 	}
 
@@ -42,10 +47,18 @@ public class PlayerDeathHandler implements Listener {
 				e.getPlayer().setAllowFlight(true);
 				e.getPlayer().sendTitle(ChatColor.RED + "You lost your last life!", ChatColor.RED + "You are now a ghost!", 20, 20 * 5, 20);
 				e.getPlayer().sendMessage(ChatColor.GREEN + "You may now fly around and use the /tpa command to teleport to other players!");
-				e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostBlink.TYPE).get());
-				e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostRespawn.TYPE).get());
 				e.getPlayer().teleport(e.getPlayer().getLastDeathLocation());
 				LifeManager.updateTeam(e.getPlayer());
+
+				if (this.plugin.getConfig().getBoolean("ghost.give-items")) {
+					if (this.plugin.getConfig().getBoolean("items.blink.enabled")) {
+						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostBlink.TYPE).get());
+					}
+
+					if (this.plugin.getConfig().getBoolean("items.respawn.enabled")) {
+						e.getPlayer().getInventory().addItem(ItemRegistry.get(GhostRespawn.TYPE).get());
+					}
+				}
 			});
 		}
 	}

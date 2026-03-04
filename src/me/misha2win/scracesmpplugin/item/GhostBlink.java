@@ -24,7 +24,7 @@ import me.misha2win.scracesmpplugin.util.ParticleMaker;
 
 public class GhostBlink {
 
-	public static String TYPE = "ghost_blink";
+	public static final String TYPE = "ghost_blink";
 
 	public static void register() {
 		ItemRegistry.register(TYPE, GhostBlink::createItem);
@@ -72,11 +72,11 @@ public class GhostBlink {
 			player.removePotionEffect(PotionEffectType.DARKNESS);
 			player.removePotionEffect(PotionEffectType.BLINDNESS);
 			player.setGameMode(GameMode.ADVENTURE);
-			player.setCooldown(Material.ECHO_SHARD, 20 * 3);
+			player.setCooldown(Material.ECHO_SHARD, plugin.getConfig().getInt("items.blink.cooldown-ticks"));
 			player.getWorld().playSound(player.getLocation(), Sound.BLOCK_SCULK_SENSOR_CLICKING, SoundCategory.PLAYERS, 0.5f, 0.1f);
 			ParticleMaker.createDome(Particle.SCULK_SOUL,  player.getLocation(), 0.8, 3, 0.05);
 			LifeManager.updateTeam(player);
-		}, 15);
+		}, plugin.getConfig().getInt("items.blink.duration-ticks"));
 	}
 
 }

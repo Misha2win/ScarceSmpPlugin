@@ -11,13 +11,13 @@ commands:
     description: gives one of your lives to another player
     usage: "Usage: /givelife (player)"
 
-  banish:
-    description: banishes a ghost
-    usage: "Usage: /banish (player)"
-
   givescarce:
-      description: gives a scarce item to the recipient
-      usage: "Usage: /givescarce [player] [item] [count]"
+    description: gives a scarce item to the recipient
+    usage: "Usage: /givescarce [player] [item] [count]"
+
+  scarceconfig:
+    description: command for setting or getting config values
+    usage: "Usage: /scarceconfig (get | set) (config) [value to set]"
 
   scarce:
     description: admin command for testing features

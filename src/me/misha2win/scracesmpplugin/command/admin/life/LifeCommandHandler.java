@@ -79,7 +79,7 @@ public class LifeCommandHandler implements CommandExecutor {
 		return true;
 	}
 
-	public boolean applyLifeAction(String action, Player player, int lives) {
+	public void applyLifeAction(String action, Player player, int lives) {
 		if (action.equals("add")) {
 			addLives(player, lives);
 		} else if (action.equals("remove")) {
@@ -87,8 +87,6 @@ public class LifeCommandHandler implements CommandExecutor {
 		} else if (action.equals("set")) {
 			setLives(player, lives);
 		}
-
-		return false;
 	}
 
 	public void addLives(Player player, int numOfLives) {

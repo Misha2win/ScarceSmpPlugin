@@ -50,7 +50,7 @@ public class GhostRespawn {
 		if (e.getPlayer().getCooldown(Material.COMPASS) != 0) return;
 
 		player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
-		player.setCooldown(Material.COMPASS, 10 * 20);
+		player.setCooldown(Material.COMPASS, plugin.getConfig().getInt("items.respawn.cooldown-ticks"));
 	}
 
 }

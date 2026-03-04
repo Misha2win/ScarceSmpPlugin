@@ -2,7 +2,6 @@ package me.misha2win.scracesmpplugin.util;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.TileState;
-import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;

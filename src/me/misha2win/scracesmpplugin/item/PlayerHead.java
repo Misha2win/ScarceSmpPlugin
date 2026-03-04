@@ -115,27 +115,27 @@ public class PlayerHead {
 	public static void onPrepareSmithing(ScarceLife plugin, PrepareSmithingEvent e) {
 		if (e.getResult() == null) return;
 
-	    ItemStack baseItem = e.getInventory().getItem(1);
-	    if (!TYPE.equals(ItemUtil.getType(baseItem)) || ItemUtil.getBoolean(baseItem.getItemMeta(), PlayerHead.USED_KEY)) {
-	    	e.setResult(null);
-	    }
+		ItemStack baseItem = e.getInventory().getItem(1);
+		if (!TYPE.equals(ItemUtil.getType(baseItem)) || ItemUtil.getBoolean(baseItem.getItemMeta(), PlayerHead.USED_KEY)) {
+			e.setResult(null);
+		}
 	}
 
 	public static void onSmithing(ScarceLife plugin, SmithItemEvent e) {
 		if (e.getResult() == null) return;
 
-	    SmithingInventory inventory = e.getInventory();
-	    ItemMeta oldMeta = inventory.getItem(1).getItemMeta();
+		SmithingInventory inventory = e.getInventory();
+		ItemMeta oldMeta = inventory.getItem(1).getItemMeta();
 
-	    String name = ItemUtil.getString(oldMeta, PlayerHead.PLAYER_KEY);
+		String name = ItemUtil.getString(oldMeta, PlayerHead.PLAYER_KEY);
 		int lives = ItemUtil.getInteger(oldMeta, PlayerHead.LIVES_KEY);
 		String death = ItemUtil.getString(oldMeta, PlayerHead.DEATH_KEY);
 
 		ItemStack replacement = PlayerHead.createItem(name, lives, death, true);
 
-    	Bukkit.getScheduler().runTask(plugin, () -> {
-    		inventory.setItem(1, replacement);
-    	});
+		Bukkit.getScheduler().runTask(plugin, () -> {
+			inventory.setItem(1, replacement);
+		});
 	}
 
 	public static void onItemDespawn(ScarceLife plugin, ItemDespawnEvent e) {
@@ -143,6 +143,10 @@ public class PlayerHead {
 	}
 
 	public static void onPlayerDeath(ScarceLife plugin, PlayerDeathEvent e) {
+		if (!plugin.getConfig().getBoolean("death.drop-head")) {
+			return;
+		}
+
 		Player victim = e.getEntity();
 		ItemStack head = PlayerHead.createItem(victim, ChatColor.DARK_RED + e.getDeathMessage());
 

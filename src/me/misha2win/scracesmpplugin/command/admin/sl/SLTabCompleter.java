@@ -9,7 +9,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import me.misha2win.scracesmpplugin.ScarceLife;
-import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class SLTabCompleter implements TabCompleter {
@@ -27,15 +26,11 @@ public class SLTabCompleter implements TabCompleter {
 
 		if(sender.isOp())
 			if (args.length == 1) { // Arg 1
-				suggestions = CommandUtil.getAllStartingWith(args[0], "gamemode", "give", "resetcooldowns", "tp", "createbackup", "gc");
-
+				suggestions = CommandUtil.getAllStartingWith(args[0], "resetcooldowns", "tp");
 			} else if (args.length == 2) { // Arg 2
-				if (args[0].equals("gamemode")) {
-					suggestions = CommandUtil.getAllStartingWith(args[1], "3rdlife", "lastlife", "doublelife", "limitedlife", "secretlife");
-				} else if (args[0].equals("tp")) {
-					for (World w : Bukkit.getWorlds()) {
-						suggestions.add(w.getName());
-					}
+				if (args[0].equals("tp")) {
+					String[] names = Bukkit.getWorlds().stream().map(World::getName).toArray(String[]::new);
+					suggestions.addAll(CommandUtil.getAllStartingWith(args[1], names));
 				}
 			}
 

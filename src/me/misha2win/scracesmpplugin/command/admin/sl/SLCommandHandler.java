@@ -1,7 +1,5 @@
 package me.misha2win.scracesmpplugin.command.admin.sl;
 
-import java.util.function.Supplier;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -10,15 +8,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
-import me.misha2win.scracesmpplugin.WorldBackupManager;
-import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class SLCommandHandler implements CommandExecutor {
 
+	@SuppressWarnings("unused")
 	private ScarceLife plugin;
 
 	public SLCommandHandler(ScarceLife plugin) {
@@ -35,46 +31,7 @@ public class SLCommandHandler implements CommandExecutor {
 		if (args.length < 1)
 			return false;
 
-		if (args[0].equals("gamemode")) {
-			if ("l".startsWith("l")) {
-				sender.sendMessage(ChatColor.RED + "The gamemode subcommand does not work!");
-				return true;
-			}
-
-			if (args.length < 2)
-				return false;
-
-			if (args[1].equals("3rdlife")) {
-				// 3 Lives
-				sender.sendMessage(ChatColor.RED + "This is already the gamemode!");
-				CommandUtil.logCommand(sender, "Set the live mode to 3rdlife");
-			} else if (args[1].equals("lastlife")) {
-				// 2-6 Lives
-				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "Set the live mode to lastlife");
-				return true;
-			} else if (args[1].equals("doublelife")) {
-				// 3 Lives + Soulmates
-				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "Set the live mode to doublelife");
-				return true;
-			} else if (args[1].equals("limitedlife")) {
-				// 24 Hours + Death means lose an hour
-				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "Set the live mode to limitedlife");
-				return true;
-			} else if (args[1].equals("secretlife")) {
-				// 3 Lives + Secret tasks
-				sender.sendMessage(ChatColor.RED + "This gamemode is not available yet!");
-				CommandUtil.logCommand(sender, "Set the live mode to secretlife");
-				return true;
-			} else {
-				sender.sendMessage(ChatColor.RED + "Invalid arguments!");
-				return true;
-			}
-
-			Bukkit.broadcastMessage("Gamemode changed to " + ChatColor.GREEN + args[1] + ChatColor.WHITE + "!");
-		} else if (args[0].equals("resetcooldowns")) {
+		if (args[0].equals("resetcooldowns")) {
 			if (sender instanceof Player) {
 				for (Material mat : Material.values()) {
 					if (mat.isItem())
@@ -82,30 +39,6 @@ public class SLCommandHandler implements CommandExecutor {
 				}
 				CommandUtil.logCommand(sender, "Reset their item cooldowns");
 			}
-		}
-		else if (args[0].equals("createbackup")) {
-			CommandUtil.logCommand(sender, "Started creating a world backup");
-			WorldBackupManager.start(plugin); // XXX
-		} else if (args[0].equals("gc")) {
-			System.gc();
-//			int chunksAttemptedToUnload = 0;
-//			int unloadedChunks = 0;
-//			for (World world : Bukkit.getWorlds()) {
-//				world.save();
-//				for (Chunk chunk : world.getLoadedChunks()) {
-//					chunksAttemptedToUnload++;
-//					if (world.unloadChunk(chunk)) {
-//						unloadedChunks++;
-//					} else {
-//						Bukkit.getLogger().info("Could not unload chunk located in " + chunk.getWorld().getName() + " at " + chunk.getX() + " " + chunk.getZ() + ".");
-//						Bukkit.getLogger().info(chunk.toString());
-//
-//					}
-//				}
-//			}
-//			Bukkit.getLogger().info("Unloaded " + unloadedChunks + " out of the " + chunksAttemptedToUnload + " attempted chunks to unload!");
-		}
-		else if (args[0].equals("test")) {
 		} else if (args[0].equals("tp")) {
 			World w = Bukkit.getWorld(args[1]);
 			if (w != null) {

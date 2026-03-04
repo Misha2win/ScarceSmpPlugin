@@ -47,9 +47,6 @@ public class EnchantingTable {
 
 	public static final String TYPE = "enchanting_table";
 
-	public static final long PICKUP_COOLDOWN = TimeUtil.secondsToTicks(10);
-	public static final long GLOW_LENGTH = TimeUtil.secondsToTicks(10);
-
 	public static final HashMap<String, Long> COOLDOWNS = new HashMap<>();
 
 	public static void register() {
@@ -203,7 +200,7 @@ public class EnchantingTable {
 			BukkitTask task = hideGlowTaskRef.getAndSet(null);
 			if (task != null) task.cancel();
 			display.remove();
-		}, GLOW_LENGTH));
+		}, plugin.getConfig().getInt("items.enchanting-table.glow-ticks")));
 	}
 
 	public static void onPlace(ScarceLife plugin, BlockPlaceEvent e) {
@@ -225,11 +222,11 @@ public class EnchantingTable {
 		removeEffects(player);
 
 		// Set the pickup cooldown of this enchanting table
-		COOLDOWNS.put(locationString, TimeUtil.getFutureTimeFromTicks(PICKUP_COOLDOWN));
+		COOLDOWNS.put(locationString, TimeUtil.getFutureTimeFromTicks(plugin.getConfig().getInt("items.enchanting-table.pickup-cooldown-ticks")));
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			COOLDOWNS.remove(locationString);
 			Bukkit.broadcastMessage(String.format("%sThe enchanting table can be picked up!", ChatColor.GREEN));
-		}, PICKUP_COOLDOWN);
+		}, plugin.getConfig().getInt("items.enchanting-table.pickup-cooldown-ticks"));
 
 		startGlow(plugin, block);
 	}

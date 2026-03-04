@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -17,6 +18,8 @@ import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceCommandHa
 import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeTabCompleter;
+import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigCommandHandler;
+import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeCommandHandler;
@@ -49,13 +52,10 @@ public class ScarceLife extends JavaPlugin {
 		ItemRegistry.registerItems();
 		ItemRecipeRegistry.registerAll();
 
-		File dir = new File("plugins/" + this.getName());
-		if (dir.exists()) {
-			getLogger().info(this.getName() + " folder already exists!");
-		} else {
-			dir.mkdir();
-			getLogger().info(this.getName() + " folder created!");
-		}
+		saveDefaultConfig();
+		FileConfiguration config = getConfig();
+		config.options().copyDefaults(true);
+		saveConfig();
 
 		String versionString = "Version 1.12.11.1";
 
@@ -68,6 +68,7 @@ public class ScarceLife extends JavaPlugin {
 
 		// Register commands
 		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this), "sl");
+		registerCommand("scarceconfig", new ScarceConfigCommandHandler(this), new ScarceConfigTabCompleter(this));
 		registerCommand("givescarce", new GiveScarceCommandHandler(this), new GiveScarceTabCompleter(this));
 		registerCommand("life", new LifeCommandHandler(this), new LifeTabCompleter(this));
 		registerCommand("givelife", new GiveLifeCommandHandler(this), new GiveLifeTabCompleter(this));

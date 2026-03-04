@@ -93,10 +93,23 @@ public class EdenApple {
 	public static void onPlayerEat(ScarceLife plugin, PlayerItemConsumeEvent e) {
 		Player player = e.getPlayer();
 
+		if (!plugin.getConfig().getBoolean("items.eden-apple.enabled")) { // TODO: add listener for config change
+			player.sendMessage(ChatColor.RED + "Eden apples are disabled!");
+			e.setCancelled(true);
+			return;
+		}
+
 		int playerLives = LifeManager.getLivesScoreboard(e.getPlayer()).getScore();
-		int edenApplesEaten = LifeManager.getEdenScoreboard(e.getPlayer()).getScore();
-		if (playerLives >= 4) {
+		if (playerLives >= plugin.getConfig().getInt("lives.max")) {
 			player.sendMessage(ChatColor.RED + "You cannot eat this Eden Apple, you already have too many lives!");
+			e.setCancelled(true);
+			return;
+		}
+
+		int maxEdenApples = plugin.getConfig().getInt("items.eden-apple.max");
+		int edenApplesEaten = LifeManager.getEdenScoreboard(e.getPlayer()).getScore();
+		if (maxEdenApples > 0 && edenApplesEaten >= maxEdenApples) {
+			player.sendMessage(ChatColor.RED + "You take a bite, but you feel nothing. You've eaten the max amount of eden apples!");
 			e.setCancelled(true);
 			return;
 		}

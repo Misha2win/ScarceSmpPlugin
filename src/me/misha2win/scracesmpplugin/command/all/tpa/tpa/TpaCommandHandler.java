@@ -59,19 +59,18 @@ public class TpaCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		p.sendMessage(ChatColor.GREEN + "Teleport request sent to " + p2.getName() + ".");
+		p.sendMessage(ChatColor.GREEN + "Teleport request sent to " + p2.getDisplayName() + ChatColor.GREEN + ".");
 		p.sendMessage(ChatColor.GREEN + "They have 60 seconds to accept! Or you can cancel your request with /tpcancel");
 		p2.sendMessage(ChatColor.GREEN + p.getName() + " has requested to teleport to you!");
 		p2.sendMessage(ChatColor.GREEN + "Type '/tpaccept' to accept or '/tpdeny' to deny their teleport request. If you have multiple requests then specify the name of the person you want to accept or deny.");
 
 		REQUESTS.put(p, p2);
-		Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			if (REQUESTS.containsKey(p)) {
 				REQUESTS.remove(p);
 				p.sendMessage(ChatColor.RED + "Your teleport request to " + p2.getName() + " has expired!");
 				p2.sendMessage(ChatColor.RED + p.getName() + "'s teleport request to you has expired!");
 			}
-
 		}, 60 * 20);
 
 		return true;

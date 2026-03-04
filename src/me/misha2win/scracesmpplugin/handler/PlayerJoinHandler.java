@@ -11,16 +11,19 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 
 public class PlayerJoinHandler implements Listener {
-	
-	@SuppressWarnings("unused")
+
 	private ScarceLife plugin;
-	
+
 	public PlayerJoinHandler(ScarceLife plugin) {
 		this.plugin = plugin;
-	} 
+	}
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
+		if (LifeManager.getLives(e.getPlayer()) <= 0 && !this.plugin.getConfig().getBoolean("ghost.enabled")) {
+			e.getPlayer().kickPlayer("You have lost your last life!");
+		}
+
 		if (LifeManager.getLivesScoreboard(e.getPlayer()) == null) {
 			// Player is logging in for first time or the player does not have a lives scoreboard
 			LifeManager.getLivesScoreboard(e.getPlayer()).setScore(3);
@@ -29,14 +32,14 @@ public class PlayerJoinHandler implements Listener {
 			// The player has logged on before and has a lives scoreboard
 			Bukkit.getLogger().info(e.getPlayer().getName() + " joined with " + LifeManager.getLivesScoreboard(e.getPlayer()).getScore() + " lives");
 		}
-		
+
 		LifeManager.updateTeam(e.getPlayer());
-		
+
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (LifeManager.getLives(player) <= 0) {
 				PacketSender.sendTeamJoinPacket(e.getPlayer(), player);
 			}
 		}
 	}
-	
+
 }

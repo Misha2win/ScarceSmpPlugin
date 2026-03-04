@@ -1,6 +1,30 @@
-eTableCooldown: 36000
-eTableGlowTime: 36000
+lives:
+  max: 4 # Max lives a player can have at once. <1 is infinite.
 
-ghostTogglePermanent: false
-ghostToggleCooldown: 6000
-ghostToggleDuration: 6000
+ghost:
+  enabled: true # If true, players wih 0 lives won't be kicked and be allowed to respawn in adventure mode.
+  give-items: true # If true, ghosts receive their ghost items when they respawn.
+
+death:
+  drop-head: true # If true, players will drop their head that says their death message.
+  keep-inventory: true # If true, players keep their inventory unless they lost their last life.
+
+items:
+
+  blink: # Item that allows ghosts to blink (temporary spectator mode).
+    enabled: true
+    duration-ticks: 15 # 0.75 seconds
+    cooldown-ticks: 20 # 1 second
+
+  respawn: # Allows ghosts to teleport back to world spawn.
+    enabled: true
+    cooldown-ticks: 20 # 1 second
+
+  eden-apple: # Item that when eaten gives the player an extra life.
+    enabled: true
+    max: -1 # Limit the number of apples a player can eat. <1 means infinite eden apples.
+
+  enchanting-table:
+    enabled: true # If true, only one enchanting table can exist at once and make people who take it cursed.
+    glow-ticks: 1200 # 1 minute
+    pickup-cooldown-ticks: 12000 # 10 minutes

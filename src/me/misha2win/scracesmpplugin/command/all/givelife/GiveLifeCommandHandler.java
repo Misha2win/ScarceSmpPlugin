@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
-import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class GiveLifeCommandHandler implements CommandExecutor {
 
@@ -82,9 +81,10 @@ public class GiveLifeCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		// Receiving player must have less than 4 lives
-		if (LifeManager.getLivesScoreboard(p2).getScore() >= 4) {
-			p.sendMessage(ChatColor.RED + "You cannot give a life to this player! They already have 4 lives!");
+		// Receiving player must not have be given more lives than the max
+		int maxLives = this.plugin.getConfig().getInt("lives.max");
+		if (maxLives > 0 && LifeManager.getLivesScoreboard(p2).getScore() >= maxLives) {
+			p.sendMessage(ChatColor.RED + "You cannot give a life to this player! They already have " + maxLives + " or more lives!");
 
 			return true;
 		}
