@@ -43,7 +43,7 @@ public class TpaCommandHandler implements CommandExecutor {
 
 		Player p = (Player) sender;
 
-		if (LifeManager.getLives(p) > 0) {
+		if (this.plugin.getConfig().getBoolean("commands.tpa.only-ghosts") && LifeManager.getLives(p) > 0) {
 			p.sendMessage(ChatColor.RED + "You must be dead to use this command!");
 			return true;
 		}
