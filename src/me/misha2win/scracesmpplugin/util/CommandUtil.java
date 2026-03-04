@@ -182,14 +182,17 @@ public class CommandUtil {
 	}
 
 	public static void logCommand(CommandSender sender, String message) {
-		sender.sendMessage(String.format(message, ChatColor.WHITE));
 		String formatted = String.format(message, ChatColor.GRAY);
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
-			messageAllOpedPlayers(sender, String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, player.getDisplayName(), formatted));
+			formatted = String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, player.getDisplayName(), formatted);
 		} else {
-			messageAllOpedPlayers(sender, String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, sender.getName(), formatted));
+			formatted = String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, sender.getName(), formatted);
 		}
+
+		sender.sendMessage(String.format(message, ChatColor.WHITE));
+		messageAllOpedPlayers(sender, formatted);
+		Bukkit.getLogger().info(formatted);
 	}
 
 	public static void messageAllOpedPlayers(String message) {
