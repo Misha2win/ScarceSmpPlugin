@@ -67,4 +67,4 @@ Eden Apples are crafted using player heads, a netherite ingot, and the **Unstabl
 ## Compatibility
 
 Tested on:
-- Spigot 1.20.11
+- Spigot 1.21.11
