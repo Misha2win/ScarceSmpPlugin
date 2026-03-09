@@ -25,13 +25,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -39,6 +43,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
+import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.util.TimeUtil;
@@ -47,11 +52,14 @@ public class EnchantingTable {
 
 	public static final String TYPE = "enchanting_table";
 
+	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, TYPE);
+
 	public static final HashMap<String, Long> COOLDOWNS = new HashMap<>();
 
 	public static void register() {
 		Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
 		ItemRegistry.register(TYPE, EnchantingTable::createItem);
+		ItemRecipeRegistry.register(TYPE, getRecipe());
 		ItemEventRouter.on(TYPE, BlockBreakEvent.class, EnchantingTable::onBreak);
 		ItemEventRouter.on(TYPE, BlockPlaceEvent.class, EnchantingTable::onPlace);
 		ItemEventRouter.on(TYPE, PlayerDropItemEvent.class, EnchantingTable::onPlayerDropItem);
@@ -59,6 +67,8 @@ public class EnchantingTable {
 		ItemEventRouter.on(TYPE, PlayerItemConsumeEvent.class, EnchantingTable::onPlayerConsumeItem);
 		ItemEventRouter.on(TYPE, PlayerDeathEvent.class, EnchantingTable::onPlayerDeath);
 		ItemEventRouter.on(TYPE, PlayerQuitEvent.class, EnchantingTable::onPlayerQuit);
+		ItemEventRouter.on(TYPE, PrepareItemCraftEvent.class, UnstableMix::onPrepareCraft);
+		ItemEventRouter.on(TYPE, CraftItemEvent.class, UnstableMix::onCraft);
 	}
 
 	private static ItemStack createItem() {
@@ -74,6 +84,22 @@ public class EnchantingTable {
 		item.setItemMeta(meta);
 
 		return item;
+	}
+
+	private static Recipe getRecipe() {
+		ShapedRecipe recipe = new ShapedRecipe(RECIPE_KEY, createItem());
+
+		recipe.shape(
+			" B ",
+			"DOD",
+			"OOO"
+		);
+
+		recipe.setIngredient('B', Material.BOOK);
+		recipe.setIngredient('O', Material.OBSIDIAN);
+		recipe.setIngredient('D', Material.DIAMOND);
+
+		return recipe;
 	}
 
 	private static void addEffects(Player player) {
@@ -343,6 +369,38 @@ public class EnchantingTable {
 				placeNewTable(plugin);
 			});
 		}
+	}
+
+	public static void onPrepareCraft(ScarceLife plugin, PrepareItemCraftEvent e) {
+		ItemStack result = e.getInventory().getResult();
+		ItemMeta meta = result.getItemMeta();
+		meta.setLore(ItemUtil.makeList(ChatColor.RED, "Warning: Crafting this will curse you and reveal your location!"));
+		result.setItemMeta(meta);
+		e.getInventory().setResult(result);
+	}
+
+	public static void onCraft(ScarceLife plugin, CraftItemEvent e) {
+		if (!(e.getWhoClicked() instanceof Player)) {
+			e.setCancelled(true);
+			return;
+		}
+
+		ItemStack result = e.getCurrentItem();
+		ItemMeta meta = result.getItemMeta();
+		meta.setLore(null);
+		result.setItemMeta(meta);
+		result.setAmount(1);
+		e.setCurrentItem(result);
+
+		Player player = (Player) e.getWhoClicked();
+		String locationString = locationToString(player.getLocation());
+
+		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.RED + " has crafted the enchanting table!");
+		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.WHITE + " is at " + locationString + ChatColor.WHITE + ".");
+
+		addEffects(player);
+
+		Bukkit.removeRecipe(RECIPE_KEY);
 	}
 
 }

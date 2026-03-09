@@ -75,7 +75,6 @@ public class UnstableMix {
 
 	public static void onPrepareCraft(ScarceLife plugin, PrepareItemCraftEvent e) {
 		if (ItemUtil.getType(e.getInventory().getItem(5)) != null) {
-			e.getView().getPlayer().sendMessage(TYPE);
 			e.getInventory().setResult(null);
 		}
 	}

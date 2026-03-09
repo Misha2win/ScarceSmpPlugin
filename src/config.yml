@@ -43,5 +43,6 @@ items:
 
   enchanting-table:
     enabled: true # If true, only one enchanting table can exist at once and make people who take it cursed.
-    glow-ticks: 1200 # Time the table glows after being placed (1 minute)
+    craftable: true # When false, the crafting for the enchanting table will be completely disabled.
+    glow-ticks: 1200 # Time the table glows after being placed (1 minute).
     pickup-cooldown-ticks: 12000 # 10 minutes

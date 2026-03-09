@@ -1,5 +1,9 @@
 package me.misha2win.scracesmpplugin.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.TileState;
 import org.bukkit.inventory.ItemStack;
@@ -11,6 +15,31 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 public final class ItemUtil {
 
 	public static final NamespacedKey ITEM_ID_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "custom_item");
+
+	public static List<String> makeList(ChatColor color, String lore) {
+		List<String> lines = new ArrayList<>();
+		if (lore == null) return lines;
+
+		String text = lore.trim();
+		int maxWidth = 30;
+
+		while (!text.isEmpty()) {
+			if (text.length() <= maxWidth) {
+					lines.add(color + text);
+					break;
+			}
+
+			int breakIndex = text.lastIndexOf(' ', maxWidth);
+			if (breakIndex <= 0) breakIndex = maxWidth; //no space found, hard break
+
+			String line = text.substring(0, breakIndex).trim();
+			if (!line.isEmpty()) lines.add(color + line);
+
+			text = text.substring(breakIndex).trim();
+		}
+
+		return lines;
+	}
 
 	public static void setType(ItemMeta meta, String type) {
 		ItemUtil.setString(meta, ItemUtil.ITEM_ID_KEY, type);
