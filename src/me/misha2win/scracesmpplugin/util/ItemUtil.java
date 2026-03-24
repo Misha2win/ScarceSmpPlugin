@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.TileState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
@@ -41,34 +41,6 @@ public final class ItemUtil {
 		return lines;
 	}
 
-	public static void setType(ItemMeta meta, String type) {
-		ItemUtil.setString(meta, ItemUtil.ITEM_ID_KEY, type);
-	}
-
-	public static void setString(ItemMeta meta, NamespacedKey key, String value) {
-		meta.getPersistentDataContainer().set(
-				key,
-				PersistentDataType.STRING,
-				value
-			);
-	}
-
-	public static void setInteger(ItemMeta meta, NamespacedKey key, int value) {
-		meta.getPersistentDataContainer().set(
-				key,
-				PersistentDataType.INTEGER,
-				value
-			);
-	}
-
-	public static void setBoolean(ItemMeta meta, NamespacedKey key, boolean value) {
-		meta.getPersistentDataContainer().set(
-				key,
-				PersistentDataType.BOOLEAN,
-				value
-			);
-	}
-
 	public static String getType(ItemStack item) {
 		if (item == null) return null;
 
@@ -78,62 +50,47 @@ public final class ItemUtil {
 		return meta.getPersistentDataContainer().get(ItemUtil.ITEM_ID_KEY, PersistentDataType.STRING);
 	}
 
-	public static String getType(ItemMeta meta) {
-		return meta.getPersistentDataContainer().get(ItemUtil.ITEM_ID_KEY, PersistentDataType.STRING);
-	}
-	public static String getString(ItemMeta meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+	public static void setType(PersistentDataHolder holder, String type) {
+		ItemUtil.setString(holder, ItemUtil.ITEM_ID_KEY, type);
 	}
 
-	public static int getInteger(ItemMeta meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
-	}
-
-	public static boolean getBoolean(ItemMeta meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.BOOLEAN);
-	}
-
-	public static void setType(TileState meta, String type) {
-		ItemUtil.setString(meta, ItemUtil.ITEM_ID_KEY, type);
-	}
-
-	public static void setString(TileState meta, NamespacedKey key, String value) {
-		meta.getPersistentDataContainer().set(
+	public static void setString(PersistentDataHolder holder, NamespacedKey key, String value) {
+		holder.getPersistentDataContainer().set(
 				key,
 				PersistentDataType.STRING,
 				value
 			);
 	}
 
-	public static void setInteger(TileState meta, NamespacedKey key, int value) {
-		meta.getPersistentDataContainer().set(
+	public static void setInteger(PersistentDataHolder holder, NamespacedKey key, int value) {
+		holder.getPersistentDataContainer().set(
 				key,
 				PersistentDataType.INTEGER,
 				value
 			);
 	}
 
-	public static void setBoolean(TileState meta, NamespacedKey key, boolean value) {
-		meta.getPersistentDataContainer().set(
+	public static void setBoolean(PersistentDataHolder holder, NamespacedKey key, boolean value) {
+		holder.getPersistentDataContainer().set(
 				key,
 				PersistentDataType.BOOLEAN,
 				value
 			);
 	}
 
-	public static String getType(TileState meta) {
-		return meta.getPersistentDataContainer().get(ItemUtil.ITEM_ID_KEY, PersistentDataType.STRING);
+	public static String getType(PersistentDataHolder holder) {
+		return holder.getPersistentDataContainer().get(ItemUtil.ITEM_ID_KEY, PersistentDataType.STRING);
 	}
-	public static String getString(TileState meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-	}
-
-	public static int getInteger(TileState meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+	public static String getString(PersistentDataHolder holder, NamespacedKey key) {
+		return holder.getPersistentDataContainer().get(key, PersistentDataType.STRING);
 	}
 
-	public static boolean getBoolean(TileState meta, NamespacedKey key) {
-		return meta.getPersistentDataContainer().get(key, PersistentDataType.BOOLEAN);
+	public static int getInteger(PersistentDataHolder holder, NamespacedKey key) {
+		return holder.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+	}
+
+	public static boolean getBoolean(PersistentDataHolder holder, NamespacedKey key) {
+		return holder.getPersistentDataContainer().get(key, PersistentDataType.BOOLEAN);
 	}
 
 }

@@ -1,4 +1,4 @@
-package me.misha2win.scracesmpplugin.command.admin.givescarce;
+package me.misha2win.scracesmpplugin.command.admin.scarcegive;
 
 import java.util.HashMap;
 import java.util.function.Supplier;
@@ -15,9 +15,9 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
-public class GiveScarceCommandHandler implements CommandExecutor {
+public class ScarceGiveCommandHandler implements CommandExecutor {
 
-	public GiveScarceCommandHandler(ScarceLife plugin) {
+	public ScarceGiveCommandHandler(ScarceLife plugin) {
 	}
 
 	@Override

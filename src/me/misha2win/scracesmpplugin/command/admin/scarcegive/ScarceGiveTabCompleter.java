@@ -1,4 +1,4 @@
-package me.misha2win.scracesmpplugin.command.admin.givescarce;
+package me.misha2win.scracesmpplugin.command.admin.scarcegive;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,12 +12,12 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
-public class GiveScarceTabCompleter implements TabCompleter {
+public class ScarceGiveTabCompleter implements TabCompleter {
 
 	@SuppressWarnings("unused")
 	private ScarceLife plugin;
 
-	public GiveScarceTabCompleter(ScarceLife plugin) {
+	public ScarceGiveTabCompleter(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
 

@@ -1,7 +1,5 @@
 package me.misha2win.scracesmpplugin;
 
-import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.bukkit.Bukkit;
@@ -14,14 +12,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 
-import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceCommandHandler;
-import me.misha2win.scracesmpplugin.command.admin.givescarce.GiveScarceTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.life.LifeTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigTabCompleter;
+import me.misha2win.scracesmpplugin.command.admin.scarcegive.ScarceGiveCommandHandler;
+import me.misha2win.scracesmpplugin.command.admin.scarcegive.ScarceGiveTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLTabCompleter;
+import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpCommandHandler;
+import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
@@ -36,6 +36,7 @@ import me.misha2win.scracesmpplugin.handler.DeadPlayerHandler;
 import me.misha2win.scracesmpplugin.handler.CustomItemEventHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerDeathHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
+import me.misha2win.scracesmpplugin.item.EnchantingTable;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
@@ -43,9 +44,6 @@ import me.misha2win.scracesmpplugin.util.CommandUtil;
 public class ScarceLife extends JavaPlugin {
 
 	public static final String NAMESPACE = "scarcelife";
-
-	private long lastModified;
-	private boolean isNoLongerModified;
 
 	@Override
 	public void onEnable() {
@@ -57,7 +55,7 @@ public class ScarceLife extends JavaPlugin {
 		config.options().copyDefaults(true);
 		saveConfig();
 
-		String versionString = "Version 1.12.11.1";
+		String versionString = "Version 1.12.11.2";
 
 		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
 
@@ -67,59 +65,26 @@ public class ScarceLife extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new DeadPlayerHandler(this), this);
 
 		// Register commands
-		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this), "sl");
+		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this));
 		registerCommand("scarceconfig", new ScarceConfigCommandHandler(this), new ScarceConfigTabCompleter(this));
-		registerCommand("givescarce", new GiveScarceCommandHandler(this), new GiveScarceTabCompleter(this));
+		registerCommand("scarcegive", new ScarceGiveCommandHandler(this), new ScarceGiveTabCompleter(this));
 		registerCommand("life", new LifeCommandHandler(this), new LifeTabCompleter(this));
 		registerCommand("givelife", new GiveLifeCommandHandler(this), new GiveLifeTabCompleter(this));
 		registerCommand("tpaccept", new TpacceptCommandHandler(this), new TpacceptTabCompleter(this));
 		registerCommand("tpdeny", new TpdenyCommandHandler(this), new TpdenyTabCompleter(this));
 		registerCommand("tpcancel", new TpcancelCommandHandler(this), new TpcancelTabCompleter(this));
 		registerCommand("tpa", new TpaCommandHandler(this), new TpaTabCompleter(this));
-
-		// Recipes setup
-//		rm.createCheaperTNTRecipe();
-//		rm.removeEnchantmentTableRecipe();
+		registerCommand("scarcetp", new ScarceTpCommandHandler(this), new ScarceTpTabCompleter(this));
 
 		// Setup scoreboard
 		setupScoreboard();
 
-		try {
-			Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-			getFileMethod.setAccessible(true);
-			File file = (File) getFileMethod.invoke(this);
-			lastModified = file.lastModified();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		// TODO Remove this when no longer testing!
-		Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-			try {
-				Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-				getFileMethod.setAccessible(true);
-				File file = (File) getFileMethod.invoke(this);
-				if (lastModified != file.lastModified()) {
-					Bukkit.getLogger().info("The jarfile has been modified!");
-					lastModified = file.lastModified();
-					isNoLongerModified = true;
-				} else {
-					if (isNoLongerModified) {
-						Bukkit.getLogger().info("The jarfile is done being modified! Reloading!");
-						Bukkit.getScheduler().runTask(this, () -> {
-							Bukkit.broadcastMessage(ChatColor.RED + "Restarting server plugin... Expect lag!");
-							Bukkit.reload();
-						});
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}, 20, 20);
+		AutoReloadManager.start(this);
 	}
 
 	@Override
 	public void onDisable() {
+		EnchantingTable.removeBlockDisplays();
 		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is disabled!");
 	}
 

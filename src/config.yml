@@ -1,5 +1,6 @@
 lives:
   max: 4 # Max lives a player can have at once. <1 is infinite.
+  initial: 4
 
 ghost:
   enabled: true # If true, players with 0 lives won't be kicked and be allowed to respawn in adventure mode.
@@ -8,6 +9,14 @@ ghost:
 death:
   drop-head: true # If true, players will drop their head that says their death message.
   keep-inventory: true # If true, players keep their inventory unless they lost their last life.
+
+stronghold:
+  enabled: false
+  placed: false
+  location:
+    x: 0
+    y: 0
+    z: 0
 
 commands:
 
@@ -46,3 +55,7 @@ items:
     craftable: true # When false, the crafting for the enchanting table will be completely disabled.
     glow-ticks: 1200 # Time the table glows after being placed (1 minute).
     pickup-cooldown-ticks: 12000 # 10 minutes
+
+developer: # Developer QOL debugging features. Do not touch unless you know what you're doing!
+  auto-reload:
+    enabled: false # This is extremely dangerous and should not be touched.

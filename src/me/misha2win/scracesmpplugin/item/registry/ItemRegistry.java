@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import me.misha2win.scracesmpplugin.item.CreeperMimic;
 import me.misha2win.scracesmpplugin.item.EdenApple;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
+import me.misha2win.scracesmpplugin.item.EnderEye;
 import me.misha2win.scracesmpplugin.item.GhostBlink;
 import me.misha2win.scracesmpplugin.item.GhostRespawn;
 import me.misha2win.scracesmpplugin.item.GhostVisibilityToggle;
@@ -31,6 +32,7 @@ public class ItemRegistry {
 		GhostRespawn.register();
 		UnstableMix.register();
 		EnchantingTable.register();
+		EnderEye.register();
 	}
 
 	public static void register(String type, Supplier<ItemStack> fatory) {

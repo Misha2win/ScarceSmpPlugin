@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -183,17 +186,13 @@ public class CommandUtil {
 	}
 
 	public static void logCommand(CommandSender sender, String message) {
-		String formatted = String.format(message, ChatColor.GRAY);
-		if (sender instanceof Player) {
-			Player player = (Player) sender;
-			formatted = String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, player.getDisplayName(), formatted);
-		} else {
-			formatted = String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, sender.getName(), formatted);
-		}
+		String grayedMessage = String.format(message, ChatColor.GRAY);
+		String senderName = (sender instanceof Player) ? ((Player) sender).getDisplayName() : sender.getName();
+		String formatted = String.format("%1$s[%2$s%1$s: %3$s%1$s]", ChatColor.GRAY, senderName, grayedMessage);
 
 		sender.sendMessage(String.format(message, ChatColor.WHITE));
 		messageAllOpedPlayers(sender, formatted);
-		Bukkit.getLogger().info(formatted);
+		Bukkit.getLogger().info(ChatColor.stripColor(formatted));
 	}
 
 	public static void messageAllOpedPlayers(String message) {
@@ -230,6 +229,34 @@ public class CommandUtil {
 		}
 
 		return (int) ((double) alivePlayers / onlinePlayers);
+	}
+
+	public static Location randomPointInsideWorldBorder(World world) {
+		return randomPointInsideWorldBorder(world, 0, 0);
+	}
+
+	public static Location randomPointInsideWorldBorder(World world, int xPadding, int zPadding) {
+		WorldBorder border = world.getWorldBorder();
+		Location center = border.getCenter();
+
+		double radius = border.getSize() / 2.0;
+
+		//Keep a small margin so you don't land exactly on the border edge
+		double margin = 2.0;
+		double minX = center.getX() - radius + margin + xPadding;
+		double maxX = center.getX() + radius - margin - xPadding;
+		double minZ = center.getZ() - radius + margin + zPadding;
+		double maxZ = center.getZ() + radius - margin - zPadding;
+
+		Random random = new Random();
+		double x = minX + (random.nextDouble() * (maxX - minX));
+		double z = minZ + (random.nextDouble() * (maxZ - minZ));
+
+		// Pick a safe-ish Y on the surface
+		int highestY = world.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z));
+		double y = highestY + 1.0;
+
+		return new Location(world, x + 0.5, y, z + 0.5);
 	}
 
 }

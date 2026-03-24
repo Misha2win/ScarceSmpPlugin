@@ -3,7 +3,6 @@ package me.misha2win.scracesmpplugin.item;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,11 +12,10 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.World.Environment;
-import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -32,6 +30,7 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
@@ -45,6 +44,7 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.CommandUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.util.TimeUtil;
 
@@ -55,6 +55,8 @@ public class EnchantingTable {
 	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, TYPE);
 
 	public static final HashMap<String, Long> COOLDOWNS = new HashMap<>();
+
+	private static final HashSet<BlockDisplay> BLOCK_DISPLAYS = new HashSet<>();
 
 	public static void register() {
 		Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
@@ -67,8 +69,8 @@ public class EnchantingTable {
 		ItemEventRouter.on(TYPE, PlayerItemConsumeEvent.class, EnchantingTable::onPlayerConsumeItem);
 		ItemEventRouter.on(TYPE, PlayerDeathEvent.class, EnchantingTable::onPlayerDeath);
 		ItemEventRouter.on(TYPE, PlayerQuitEvent.class, EnchantingTable::onPlayerQuit);
-		ItemEventRouter.on(TYPE, PrepareItemCraftEvent.class, UnstableMix::onPrepareCraft);
-		ItemEventRouter.on(TYPE, CraftItemEvent.class, UnstableMix::onCraft);
+		ItemEventRouter.on(TYPE, PrepareItemCraftEvent.class, EnchantingTable::onPrepareCraft);
+		ItemEventRouter.on(TYPE, CraftItemEvent.class, EnchantingTable::onCraft);
 	}
 
 	private static ItemStack createItem() {
@@ -77,7 +79,8 @@ public class EnchantingTable {
 		ItemMeta meta = item.getItemMeta();
 		meta.setMaxStackSize(1);
 
-		meta.setDisplayName("Cursed Enchanting Table");
+		meta.addEnchant(Enchantment.VANISHING_CURSE, 1, false);
+		meta.addEnchant(Enchantment.BINDING_CURSE, 1, false);
 
 		ItemUtil.setType(meta, EnchantingTable.TYPE);
 
@@ -130,32 +133,8 @@ public class EnchantingTable {
 		return TYPE.equals(ItemUtil.getType(playerInv.getItemInOffHand()));
 	}
 
-	private static Location randomPointInsideWorldBorder(World world) {
-		WorldBorder border = world.getWorldBorder();
-		Location center = border.getCenter();
-
-		double radius = border.getSize() / 2.0;
-
-		//Keep a small margin so you don't land exactly on the border edge
-		double margin = 2.0;
-		double minX = center.getX() - radius + margin;
-		double maxX = center.getX() + radius - margin;
-		double minZ = center.getZ() - radius + margin;
-		double maxZ = center.getZ() + radius - margin;
-
-		Random random = new Random();
-		double x = minX + (random.nextDouble() * (maxX - minX));
-		double z = minZ + (random.nextDouble() * (maxZ - minZ));
-
-		// Pick a safe-ish Y on the surface
-		int highestY = world.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z));
-		double y = highestY + 1.0;
-
-		return new Location(world, x + 0.5, y, z + 0.5);
-	}
-
 	private static Location placeNewTable(ScarceLife plugin) {
-		Location location = randomPointInsideWorldBorder(Bukkit.getWorlds().get(0));
+		Location location = CommandUtil.randomPointInsideWorldBorder(Bukkit.getWorlds().get(0));
 
 		location.getBlock().setType(Material.ENCHANTING_TABLE);
 		TileState tileState = (TileState) location.getBlock().getState();
@@ -196,6 +175,8 @@ public class EnchantingTable {
 		display.setBlock(block.getBlockData());
 		display.setGlowing(true);
 
+		BLOCK_DISPLAYS.add(display);
+
 		HashSet<UUID> hiddenPlayers = new HashSet<>();
 
 		AtomicReference<BukkitTask> hideGlowTaskRef = new AtomicReference<>();
@@ -210,6 +191,7 @@ public class EnchantingTable {
 				BukkitTask cleanup = cleanupTaskRef.getAndSet(null);
 				if (cleanup != null) cleanup.cancel();
 
+				BLOCK_DISPLAYS.remove(display);
 				display.remove();
 				return;
 			}
@@ -225,8 +207,18 @@ public class EnchantingTable {
 		cleanupTaskRef.set(Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			BukkitTask task = hideGlowTaskRef.getAndSet(null);
 			if (task != null) task.cancel();
+			BLOCK_DISPLAYS.remove(display);
 			display.remove();
 		}, plugin.getConfig().getInt("items.enchanting-table.glow-ticks")));
+	}
+
+	public static void removeBlockDisplays() {
+		int count = 0;
+		for (BlockDisplay display : BLOCK_DISPLAYS) {
+			display.remove();
+			count++;
+		}
+		Bukkit.getLogger().info("Removed " + count + " enchanting table block displays!");
 	}
 
 	public static void onPlace(ScarceLife plugin, BlockPlaceEvent e) {
@@ -374,6 +366,7 @@ public class EnchantingTable {
 	public static void onPrepareCraft(ScarceLife plugin, PrepareItemCraftEvent e) {
 		ItemStack result = e.getInventory().getResult();
 		ItemMeta meta = result.getItemMeta();
+		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		meta.setLore(ItemUtil.makeList(ChatColor.RED, "Warning: Crafting this will curse you and reveal your location!"));
 		result.setItemMeta(meta);
 		e.getInventory().setResult(result);
@@ -388,6 +381,7 @@ public class EnchantingTable {
 		ItemStack result = e.getCurrentItem();
 		ItemMeta meta = result.getItemMeta();
 		meta.setLore(null);
+		meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
 		result.setItemMeta(meta);
 		result.setAmount(1);
 		e.setCurrentItem(result);

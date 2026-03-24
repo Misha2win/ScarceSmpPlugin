@@ -31,6 +31,7 @@ public class ScarceConfigTabCompleter implements TabCompleter {
 			if (args[0].equals("get") || args[0].equals("set")) {
 				for (String key : plugin.getConfig().getKeys(true)) {
 					if (plugin.getConfig().isConfigurationSection(key)) continue;
+					if (key.startsWith("developer")) continue;
 
 					suggestions.addAll(CommandUtil.getAllStartingWith(args[1], key));
 				}

@@ -20,24 +20,27 @@ public class PlayerJoinHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
-		if (LifeManager.getLives(e.getPlayer()) <= 0 && !this.plugin.getConfig().getBoolean("ghost.enabled")) {
-			e.getPlayer().kickPlayer("You have lost your last life!");
-		}
+		Player player = e.getPlayer();
 
-		if (LifeManager.getLivesScoreboard(e.getPlayer()) == null) {
+		if (!player.hasPlayedBefore() || LifeManager.getLivesScoreboard(player) == null) {
 			// Player is logging in for first time or the player does not have a lives scoreboard
-			LifeManager.getLivesScoreboard(e.getPlayer()).setScore(3);
-			Bukkit.getLogger().info(e.getPlayer().getName() + " joined for the first time with 3 lives");
+			int lives = plugin.getConfig().getInt("lives.initial");
+			LifeManager.getLivesScoreboard(player).setScore(lives);
+			Bukkit.getLogger().info(player.getName() + " joined for the first time with " + lives + " lives");
 		} else {
 			// The player has logged on before and has a lives scoreboard
-			Bukkit.getLogger().info(e.getPlayer().getName() + " joined with " + LifeManager.getLivesScoreboard(e.getPlayer()).getScore() + " lives");
+			Bukkit.getLogger().info(player.getName() + " joined with " + LifeManager.getLivesScoreboard(player).getScore() + " lives");
 		}
 
-		LifeManager.updateTeam(e.getPlayer());
+		LifeManager.updateTeam(player);
 
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (LifeManager.getLives(player) <= 0) {
-				PacketSender.sendTeamJoinPacket(e.getPlayer(), player);
+		if (LifeManager.getLives(player) <= 0 && !this.plugin.getConfig().getBoolean("ghost.enabled")) {
+			player.kickPlayer("You have lost your last life!");
+		}
+
+		for (Player otherPlayer : Bukkit.getOnlinePlayers()) {
+			if (LifeManager.getLives(otherPlayer) <= 0) {
+				PacketSender.sendTeamJoinPacket(player, otherPlayer);
 			}
 		}
 	}

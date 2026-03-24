@@ -1,10 +1,12 @@
 package me.misha2win.scracesmpplugin.handler;
 
 import org.bukkit.block.TileState;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -22,6 +24,7 @@ import me.misha2win.scracesmpplugin.item.PlayerHead;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
+import me.misha2win.scracesmpplugin.item.EnderEye;
 
 public class CustomItemEventHandler implements Listener {
 
@@ -98,6 +101,13 @@ public class CustomItemEventHandler implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		ItemEventRouter.dispatch(plugin, e, EnchantingTable.TYPE);
+	}
+
+	@EventHandler
+	public void onEntitySpawn(EntitySpawnEvent e) {
+		if (e.getEntity().getType() == EntityType.EYE_OF_ENDER) {
+			ItemEventRouter.dispatch(plugin, e, EnderEye.TYPE);
+		}
 	}
 
 }
