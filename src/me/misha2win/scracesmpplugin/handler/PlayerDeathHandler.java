@@ -3,6 +3,7 @@ package me.misha2win.scracesmpplugin.handler;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -26,8 +27,10 @@ public class PlayerDeathHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e) {
-		if (this.plugin.getConfig().getBoolean("ghost.keep-inventory")) {
-			if (LifeManager.getLives(e.getEntity()) <= 1) { // Last life (before processing)
+		Player player = e.getEntity();
+
+		if (this.plugin.getConfig().getBoolean("death.keep-inventory")) {
+			if (LifeManager.getLives(player) <= 1) { // Last life (before processing)
 				e.setKeepInventory(false);
 			} else {
 				e.setKeepInventory(true);
@@ -36,9 +39,9 @@ public class PlayerDeathHandler implements Listener {
 		}
 
 		Bukkit.getScheduler().runTask(plugin, () -> {
-			LifeManager.onDeath(e.getEntity());
-			if (!this.plugin.getConfig().getBoolean("ghost.enabled")) {
-				e.getEntity().kickPlayer("You lost your last life!");
+			LifeManager.onDeath(player);
+			if (!this.plugin.getConfig().getBoolean("ghost.enabled") && LifeManager.getLives(player) <= 0) {
+				player.kickPlayer("You lost your last life!");
 			}
 		});
 	}

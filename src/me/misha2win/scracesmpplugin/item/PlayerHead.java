@@ -57,6 +57,10 @@ public class PlayerHead {
 		SkullMeta meta = (SkullMeta) playerSkull.getItemMeta();
 		meta.setMaxStackSize(1);
 
+		// FoodComponent food = meta.getFood();
+		// food.setCanAlwaysEat(true);
+		// meta.setFood(food);
+
 		ItemUtil.setType(meta, PlayerHead.TYPE);
 		ItemUtil.setBoolean(meta, PlayerHead.USED_KEY, used);
 

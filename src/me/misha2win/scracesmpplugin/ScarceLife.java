@@ -1,6 +1,7 @@
 package me.misha2win.scracesmpplugin;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,6 +34,7 @@ import me.misha2win.scracesmpplugin.command.all.tpa.tpcancel.TpcancelTabComplete
 import me.misha2win.scracesmpplugin.command.all.tpa.tpdeny.TpdenyCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpdeny.TpdenyTabCompleter;
 import me.misha2win.scracesmpplugin.handler.DeadPlayerHandler;
+import me.misha2win.scracesmpplugin.handler.EnchantmentsHandler;
 import me.misha2win.scracesmpplugin.handler.CustomItemEventHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerDeathHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
@@ -63,6 +65,7 @@ public class ScarceLife extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new PlayerDeathHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new DeadPlayerHandler(this), this);
+		Bukkit.getPluginManager().registerEvents(new EnchantmentsHandler(this), this);
 
 		// Register commands
 		registerCommand("scarce", new SLCommandHandler(this), new SLTabCompleter(this));
@@ -80,11 +83,25 @@ public class ScarceLife extends JavaPlugin {
 		setupScoreboard();
 
 		AutoReloadManager.start(this);
+		EnchantingTable.onEnable(this);
+
+		long ticks = 20 * 5;
+		AtomicReference<Long> lastTime = new AtomicReference<>(System.nanoTime());
+		Bukkit.getScheduler().runTaskTimer(this, () -> {
+			long now = System.nanoTime();
+			double mspt = (now - lastTime.get()) / 1_000_000.0 / ticks;
+			lastTime.set(now);
+
+			double tps = 1000.0 / mspt;
+			if (tps > 20) tps = 20;
+
+			String header  = String.format("%sTPS (5s): %s%.1f %sMSPT (5s): %s%.1f", ChatColor.GREEN, ChatColor.WHITE, tps, ChatColor.GREEN, ChatColor.WHITE, mspt);
+			CommandUtil.setHeader(header);
+		}, ticks, ticks);
 	}
 
 	@Override
 	public void onDisable() {
-		EnchantingTable.removeBlockDisplays();
 		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is disabled!");
 	}
 

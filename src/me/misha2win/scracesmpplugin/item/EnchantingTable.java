@@ -1,10 +1,7 @@
 package me.misha2win.scracesmpplugin.item;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,16 +9,17 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.BlockDisplay;
+import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -44,6 +42,7 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.BlockDisplayUtil;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.util.TimeUtil;
@@ -54,9 +53,9 @@ public class EnchantingTable {
 
 	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, TYPE);
 
-	public static final HashMap<String, Long> COOLDOWNS = new HashMap<>();
-
-	private static final HashSet<BlockDisplay> BLOCK_DISPLAYS = new HashSet<>();
+	private static BukkitTask hideGlowTask;
+	private static BukkitTask cleanupTask;
+	private static Long cooldown;
 
 	public static void register() {
 		Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
@@ -71,6 +70,8 @@ public class EnchantingTable {
 		ItemEventRouter.on(TYPE, PlayerQuitEvent.class, EnchantingTable::onPlayerQuit);
 		ItemEventRouter.on(TYPE, PrepareItemCraftEvent.class, EnchantingTable::onPrepareCraft);
 		ItemEventRouter.on(TYPE, CraftItemEvent.class, EnchantingTable::onCraft);
+		ItemEventRouter.on(TYPE, PrepareItemEnchantEvent.class, EnchantingTable::onEnchantPrepare);
+		ItemEventRouter.on(TYPE, EnchantItemEvent.class, EnchantingTable::onEnchant);
 	}
 
 	private static ItemStack createItem() {
@@ -105,20 +106,30 @@ public class EnchantingTable {
 		return recipe;
 	}
 
-	private static void addEffects(Player player) {
+	private static void addEffects(ScarceLife plugin, Player player) {
 		player.sendMessage(ChatColor.RED + "You have been cursed until you place the enchanting table back down!");
 		player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, PotionEffect.INFINITE_DURATION, 255, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, PotionEffect.INFINITE_DURATION, 255, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 1, false, false));
 		player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, PotionEffect.INFINITE_DURATION, 1, false, false));
+
+		FileConfiguration config = plugin.getConfig();
+		config.set("items.enchanting-table.holder", player.getName());
+		plugin.saveConfig();
+
+		setFooter(plugin);
 	}
 
-	private static void removeEffects(Player player) {
+	private static void removeEffects(ScarceLife plugin, Player player) {
 		player.sendMessage(ChatColor.GREEN + "Your curse has been lifted!");
 		player.removePotionEffect(PotionEffectType.GLOWING);
 		player.removePotionEffect(PotionEffectType.WEAKNESS);
 		player.removePotionEffect(PotionEffectType.SLOWNESS);
 		player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
+
+		FileConfiguration config = plugin.getConfig();
+		config.set("items.enchanting-table.holder", "no-one");
+		plugin.saveConfig();
 	}
 
 	private static boolean inventoryContainsType(PlayerInventory playerInv) {
@@ -134,91 +145,102 @@ public class EnchantingTable {
 	}
 
 	private static Location placeNewTable(ScarceLife plugin) {
-		Location location = CommandUtil.randomPointInsideWorldBorder(Bukkit.getWorlds().get(0));
+		Location location = CommandUtil.randomPointInsideWorldBorder(Bukkit.getWorlds().get(0)).getBlock().getLocation();
 
-		location.getBlock().setType(Material.ENCHANTING_TABLE);
-		TileState tileState = (TileState) location.getBlock().getState();
+		location.getChunk().load();
+
+		Block block = location.getBlock();
+		block.setType(Material.ENCHANTING_TABLE);
+		TileState tileState = (TileState) block.getState();
 		ItemUtil.setType(tileState, TYPE);
 		tileState.update();
 
-		Bukkit.broadcastMessage(String.format("%1$sA new enchanting table has been placed at %2$s%1$s!", ChatColor.WHITE, locationToString(location)));
+		Bukkit.broadcastMessage(String.format("%1$sA new enchanting table has been placed at %2$s%1$s!", ChatColor.WHITE, CommandUtil.locationToString(location)));
 
-		startGlow(plugin, location.getBlock());
+		removeGlow(plugin);
+
+		FileConfiguration config = plugin.getConfig();
+		config.set("items.enchanting-table.location", location);
+		plugin.saveConfig();
+
+		startGlow(plugin);
 
 		return location;
 	}
 
-	private static String getWorldName(Location location) {
-		Environment env = location.getWorld().getEnvironment();
-		if (env == Environment.NORMAL) {
-			return "Overworld";
-		} else if (env == Environment.NETHER) {
-			return "Nether";
-		} else if (env == Environment.THE_END) {
-			return "End";
+	private static void cancelGlowTasks() {
+		if (hideGlowTask != null) {
+			hideGlowTask.cancel();
+			hideGlowTask = null;
+		}
+		if (cleanupTask != null) {
+			cleanupTask.cancel();
+			cleanupTask = null;
+		}
+	}
+
+	private static void removeGlow(ScarceLife plugin) {
+		cancelGlowTasks();
+		FileConfiguration config = plugin.getConfig();
+		Location location = config.getLocation("items.enchanting-table.location");
+		if (location != null) BlockDisplayUtil.removeBlockDisplays(plugin, location);
+	}
+
+	private static void startGlow(ScarceLife plugin) {
+		FileConfiguration config = plugin.getConfig();
+		Location location = config.getLocation("items.enchanting-table.location");
+		if (location == null) return;
+
+		BlockDisplayUtil.createGlowingBlockDisplay(location);
+
+		hideGlowTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+			for (Entity blockDisplay : BlockDisplayUtil.getBlockDisplays(location)) {
+				for (Entity entity : blockDisplay.getNearbyEntities(10, 10, 10)) {
+					if (!(entity instanceof Player)) continue;
+					Player p = (Player) entity;
+					if (!p.canSee(blockDisplay)) continue;
+					p.hideEntity(plugin, blockDisplay);
+				}
+			}
+		}, 20 * 3, 20);
+
+		int glowTicks = plugin.getConfig().getInt("items.enchanting-table.glow-ticks");
+		if (glowTicks > 0) {
+			cleanupTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+				if (hideGlowTask != null) {
+					hideGlowTask.cancel();
+					hideGlowTask = null;
+				}
+				BlockDisplayUtil.removeBlockDisplays(plugin, location);
+			}, glowTicks);
+		}
+	}
+
+	public static void setFooter(ScarceLife plugin) {
+		FileConfiguration config = plugin.getConfig();
+
+		String holder = config.getString("items.enchanting-table.holder");
+		if (!holder.equals("no-one")) {
+			String player = Bukkit.getPlayer(holder).getDisplayName(); // If this throws an exception, code is broken anyways. Holder should never be offline!
+			CommandUtil.setFooter(String.format("%s %shas the enchanting table!", player, ChatColor.WHITE));
+			return;
 		}
 
-		return "unknown";
+		Location location = config.getLocation("items.enchanting-table.location");
+		if (location == null) return;
+		String coords = CommandUtil.locationToString(location);
+		String pickupable = cooldown !=  null ? ChatColor.RED + "It can't be picked up!" : ChatColor.GREEN + "It can be picked up!";
+		CommandUtil.setFooter(String.format("%sEnchanting table:\n%s%s.\n%s", ChatColor.WHITE, coords, ChatColor.WHITE, pickupable));
 	}
 
-	private static String locationToString(Location location) {
-		return String.format(
-				"%5$s%1$d %2$d %3$d %6$sin the %5$s%4$s%6$s",
-				location.getBlockX(), location.getBlockY(), location.getBlockZ(),
-				getWorldName(location),
-				ChatColor.GREEN, ChatColor.WHITE
-			);
-	}
-
-	private static void startGlow(ScarceLife plugin, Block block) {
-		BlockDisplay display = (BlockDisplay) block.getWorld().spawnEntity(block.getLocation(), EntityType.BLOCK_DISPLAY);
-		display.setBlock(block.getBlockData());
-		display.setGlowing(true);
-
-		BLOCK_DISPLAYS.add(display);
-
-		HashSet<UUID> hiddenPlayers = new HashSet<>();
-
-		AtomicReference<BukkitTask> hideGlowTaskRef = new AtomicReference<>();
-		AtomicReference<BukkitTask> cleanupTaskRef = new AtomicReference<>();
-
-		hideGlowTaskRef.set(Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-			// Clean up early if block was broken/removed
-			if (!display.isValid() || block.getType() != Material.ENCHANTING_TABLE) {
-				BukkitTask task = hideGlowTaskRef.getAndSet(null);
-				if (task != null) task.cancel();
-
-				BukkitTask cleanup = cleanupTaskRef.getAndSet(null);
-				if (cleanup != null) cleanup.cancel();
-
-				BLOCK_DISPLAYS.remove(display);
-				display.remove();
-				return;
-			}
-
-			for (Entity entity : display.getNearbyEntities(10, 10, 10)) {
-				if (!(entity instanceof Player)) continue;
-				Player p = (Player) entity;
-				if (!hiddenPlayers.add(p.getUniqueId())) continue;
-				p.hideEntity(plugin, display);
-			}
-		}, 20 * 3, 20));
-
-		cleanupTaskRef.set(Bukkit.getScheduler().runTaskLater(plugin, () -> {
-			BukkitTask task = hideGlowTaskRef.getAndSet(null);
-			if (task != null) task.cancel();
-			BLOCK_DISPLAYS.remove(display);
-			display.remove();
-		}, plugin.getConfig().getInt("items.enchanting-table.glow-ticks")));
-	}
-
-	public static void removeBlockDisplays() {
-		int count = 0;
-		for (BlockDisplay display : BLOCK_DISPLAYS) {
-			display.remove();
-			count++;
-		}
-		Bukkit.getLogger().info("Removed " + count + " enchanting table block displays!");
+	private static void queueNotifyPickupable(ScarceLife plugin, long ticks) {
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			cooldown = null;
+			plugin.getConfig().set("items.enchanting-table.current-cooldown", cooldown);
+			plugin.saveConfig();
+			Bukkit.broadcastMessage(String.format("%sThe enchanting table can be picked up!", ChatColor.GREEN));
+			setFooter(plugin);
+		}, ticks);
 	}
 
 	public static void onPlace(ScarceLife plugin, BlockPlaceEvent e) {
@@ -232,21 +254,27 @@ public class EnchantingTable {
 		Player player = e.getPlayer();
 		Block block = e.getBlockPlaced();
 
-		String locationString = locationToString(block.getLocation());
+		String locationString = CommandUtil.locationToString(block.getLocation());
 
 		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.GREEN + " has placed down the enchanting table!");
 		Bukkit.broadcastMessage(ChatColor.WHITE + "The enchanting table is at " + locationString + ChatColor.WHITE + ".");
 
-		removeEffects(player);
+		removeEffects(plugin, player);
+
+		FileConfiguration config = plugin.getConfig();
+
+		removeGlow(plugin);
 
 		// Set the pickup cooldown of this enchanting table
-		COOLDOWNS.put(locationString, TimeUtil.getFutureTimeFromTicks(plugin.getConfig().getInt("items.enchanting-table.pickup-cooldown-ticks")));
-		Bukkit.getScheduler().runTaskLater(plugin, () -> {
-			COOLDOWNS.remove(locationString);
-			Bukkit.broadcastMessage(String.format("%sThe enchanting table can be picked up!", ChatColor.GREEN));
-		}, plugin.getConfig().getInt("items.enchanting-table.pickup-cooldown-ticks"));
+		int cooldownTicks = plugin.getConfig().getInt("items.enchanting-table.pickup-cooldown-ticks");
+		cooldown =  TimeUtil.getFutureTimeFromTicks(cooldownTicks);
+		config.set("items.enchanting-table.current-cooldown", cooldown);
+		config.set("items.enchanting-table.location", block.getLocation());
+		plugin.saveConfig();
 
-		startGlow(plugin, block);
+		queueNotifyPickupable(plugin, cooldownTicks);
+		startGlow(plugin);
+		setFooter(plugin);
 	}
 
 	public static void onBreak(ScarceLife plugin, BlockBreakEvent e) {
@@ -257,8 +285,6 @@ public class EnchantingTable {
 			return;
 		}
 
-		String locationString = locationToString(e.getBlock().getLocation());
-		Long cooldown = COOLDOWNS.get(locationString);
 		if (cooldown != null) {
 			player.sendMessage(String.format(
 					"%sThe enchanting table cannot be picked up for %.0f seconds!",
@@ -270,12 +296,18 @@ public class EnchantingTable {
 
 		e.setDropItems(false);
 
+		FileConfiguration config = plugin.getConfig();
+		Location location = config.getLocation("items.enchanting-table.location");
+		if (location != null) BlockDisplayUtil.removeBlockDisplays(plugin, location);
+
 		player.getInventory().addItem(EnchantingTable.createItem());
+
+		String locationString = CommandUtil.locationToString(e.getPlayer().getLocation());
 
 		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.RED + " has picked up the enchanting table!");
 		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.WHITE + " is at " + locationString + ChatColor.WHITE + ".");
 
-		addEffects(player);
+		addEffects(plugin, player);
 	}
 
 	public static void onPlayerDropItem(ScarceLife plugin, PlayerDropItemEvent e) {
@@ -286,7 +318,7 @@ public class EnchantingTable {
 		if (player.getInventory().firstEmpty() == -1) {
 			Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.RED + " has lost the enchanting table!");
 			placeNewTable(plugin);
-			removeEffects(player);
+			removeEffects(plugin, player);
 		}
 	}
 
@@ -306,7 +338,7 @@ public class EnchantingTable {
 		if (inventoryContainsType(e.getPlayer().getInventory())) {
 			if (e.getItem().getType() == Material.MILK_BUCKET) {
 				Bukkit.getScheduler().runTask(plugin, () -> {
-					addEffects(e.getPlayer());
+					addEffects(plugin, e.getPlayer());
 				});
 			}
 		}
@@ -337,7 +369,7 @@ public class EnchantingTable {
 
 				if (killer != null) {
 					Bukkit.broadcastMessage(killer.getDisplayName() + ChatColor.RED + " has picked up the enchanting table!");
-					Bukkit.broadcastMessage(killer.getDisplayName() + ChatColor.WHITE + " is at " + locationToString(killer.getLocation()) + ChatColor.WHITE + ".");
+					Bukkit.broadcastMessage(killer.getDisplayName() + ChatColor.WHITE + " is at " + CommandUtil.locationToString(killer.getLocation()) + ChatColor.WHITE + ".");
 					return;
 				} else {
 					placeNewTable(plugin);
@@ -353,7 +385,7 @@ public class EnchantingTable {
 			for (int slot = 0; slot < playerInv.getSize(); slot++) {
 				if (TYPE.equals(ItemUtil.getType(playerInv.getItem(slot)))) {
 					playerInv.setItem(slot, null);
-					removeEffects(player);
+					removeEffects(plugin, player);
 				}
 			}
 
@@ -387,14 +419,56 @@ public class EnchantingTable {
 		e.setCurrentItem(result);
 
 		Player player = (Player) e.getWhoClicked();
-		String locationString = locationToString(player.getLocation());
+		String locationString = CommandUtil.locationToString(player.getLocation());
 
 		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.RED + " has crafted the enchanting table!");
 		Bukkit.broadcastMessage(player.getDisplayName() + ChatColor.WHITE + " is at " + locationString + ChatColor.WHITE + ".");
 
-		addEffects(player);
+		addEffects(plugin, player);
 
 		Bukkit.removeRecipe(RECIPE_KEY);
+	}
+
+	public static void onEnchantPrepare(ScarceLife plugin, PrepareItemEnchantEvent e) {
+		if (!plugin.getConfig().getBoolean("items.enchanting-table.weak-enchants")) return;
+
+		for (EnchantmentOffer offer : e.getOffers()) {
+			offer.setEnchantmentLevel(1);
+		}
+	}
+
+	public static void onEnchant(ScarceLife plugin, EnchantItemEvent e) {
+		if (!plugin.getConfig().getBoolean("items.enchanting-table.weak-enchants")) return;
+
+		Map<Enchantment, Integer> enchants = e.getEnchantsToAdd();
+		for (Enchantment enchant : e.getEnchantsToAdd().keySet()) {
+			enchants.put(enchant, 1);
+		}
+	}
+
+	public static void onEnable(ScarceLife plugin) {
+		FileConfiguration config = plugin.getConfig();
+		boolean craftable = config.getBoolean("items.enchanting-table.craftable");
+		if (!craftable) {
+			Bukkit.removeRecipe(RECIPE_KEY);
+		}
+
+		Location location = config.getLocation("items.enchanting-table.location");
+		if (location == null) return;
+		BlockDisplayUtil.removeBlockDisplays(plugin, location);
+
+		if (config.contains("items.enchanting-table.current-cooldown")) {
+			cooldown = config.getLong("items.enchanting-table.current-cooldown");
+			long ticks = TimeUtil.getDeltaMilliseconds(cooldown) / 50;
+			if (ticks > 0) {
+				queueNotifyPickupable(plugin, ticks);
+			} else {
+				config.set("items.enchanting-table.current-cooldown", null);
+				plugin.saveConfig();
+			}
+		}
+
+		startGlow(plugin);
 	}
 
 }

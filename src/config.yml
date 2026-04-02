@@ -28,6 +28,8 @@ commands:
     enabled: true
 
 items:
+  enchantments:
+    weak-only: false # If true, will make sure players can't obtain enchantments above level 1
 
   blink: # Item that allows ghosts to blink (temporary spectator mode).
     enabled: true
@@ -48,14 +50,24 @@ items:
 
   eden-apple: # Item that when eaten gives the player an extra life.
     enabled: true
+    revive-ghosts: false
     max: -1 # Limit the number of apples a player can eat. <1 means infinite eden apples.
 
   enchanting-table:
     enabled: true # If true, only one enchanting table can exist at once and make people who take it cursed.
     craftable: true # When false, the crafting for the enchanting table will be completely disabled.
-    glow-ticks: 1200 # Time the table glows after being placed (1 minute).
-    pickup-cooldown-ticks: 12000 # 10 minutes
+    weak-enchants: false # When true, will force enchants to be level 1.
+    glow-ticks: -1 # Time the table glows after being placed (<0 is infinite).
+    pickup-cooldown-ticks: 216000 # 3 hour
+    holder: no-one
+    location:
+      world: unknown
+      x: 0
+      y: 0
+      z: 0
 
 developer: # Developer QOL debugging features. Do not touch unless you know what you're doing!
   auto-reload:
     enabled: false # This is extremely dangerous and should not be touched.
+  op-only: # Makes it so that only opped players can log on
+    enabled: false

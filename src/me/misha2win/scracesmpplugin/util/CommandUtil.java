@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.WorldBorder;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
@@ -71,7 +72,7 @@ public class CommandUtil {
 		return players;
 	}
 
-	public static Player getRandomPlayer(Player... exclude) {
+	public static Player getRandomPlayer() {
 		List<Player> players = new ArrayList<>();
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			players.add(player);
@@ -218,19 +219,6 @@ public class CommandUtil {
 		return null;
 	}
 
-	public static int getAlivePlayersPercentage() {
-		int alivePlayers = 0;
-		int onlinePlayers = 0;
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			onlinePlayers++;
-			if (LifeManager.getLives(p) > 0)  {
-				alivePlayers++;
-			}
-		}
-
-		return (int) ((double) alivePlayers / onlinePlayers);
-	}
-
 	public static Location randomPointInsideWorldBorder(World world) {
 		return randomPointInsideWorldBorder(world, 0, 0);
 	}
@@ -257,6 +245,48 @@ public class CommandUtil {
 		double y = highestY + 1.0;
 
 		return new Location(world, x + 0.5, y, z + 0.5);
+	}
+
+	public static String getWorldName(Location location) {
+		Environment env = location.getWorld().getEnvironment();
+		if (env == Environment.NORMAL) {
+			return "Overworld";
+		} else if (env == Environment.NETHER) {
+			return "Nether";
+		} else if (env == Environment.THE_END) {
+			return "End";
+		}
+
+		return "unknown";
+	}
+
+	public static String locationToString(int x, int y, int z, String name) {
+		return String.format(
+				"%5$s%1$d %2$d %3$d %6$sin the %5$s%4$s%6$s",
+				x, y, z, name,
+				ChatColor.GREEN, ChatColor.WHITE
+			);
+	}
+
+	public static String locationToString(Location location) {
+		return locationToString(
+				location.getBlockX(),
+				location.getBlockY(),
+				location.getBlockZ(),
+				getWorldName(location)
+		);
+	}
+
+	public static void setFooter(String message) {
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			player.setPlayerListFooter(message);
+		}
+	}
+
+	public static void setHeader(String message) {
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			player.setPlayerListHeader(message);
+		}
 	}
 
 }

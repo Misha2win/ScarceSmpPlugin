@@ -35,18 +35,19 @@ import org.bukkit.potion.PotionEffectType;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.item.EdenApple;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
+import me.misha2win.scracesmpplugin.util.ItemUtil;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 
 public class DeadPlayerHandler implements Listener {
-	
-	@SuppressWarnings("unused")
+
 	private ScarceLife plugin;
-	
+
 	public DeadPlayerHandler(ScarceLife plugin) {
 		this.plugin = plugin;
 	}
-	
+
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		for (Player player : Bukkit.getOnlinePlayers()) {
@@ -55,79 +56,84 @@ public class DeadPlayerHandler implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (shouldIgnoreEvents(e.getPlayer()))
+		if (shouldIgnoreEvents(e.getPlayer())) {
+			boolean isEdenApple = EdenApple.TYPE.equals(ItemUtil.getType(e.getItemDrop().getItemStack()));
+			if (isEdenApple) return;
+
 			e.setCancelled(true);
+		}
 	}
-	
+
 	@EventHandler
 	public void onVehicleDamage(VehicleDamageEvent e) {
 		if (shouldIgnoreEvents(e.getAttacker()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onPlayerArmorStandManipulate(PlayerArmorStandManipulateEvent e) {
 		if (shouldIgnoreEvents(e.getPlayer()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onHangingBreakByEntity(HangingBreakByEntityEvent e) {
-		if (shouldIgnoreEvents(e.getEntity()))
+		if (shouldIgnoreEvents(e.getRemover()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onPlayerExpChange(PlayerExpChangeEvent e) {
 		if (shouldIgnoreEvents(e.getPlayer()))
 			e.setAmount(0);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteract(EntityInteractEvent e) {
 		if (shouldIgnoreEvents(e.getEntity()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
 		if (shouldIgnoreEvents(e.getPlayer()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onArmorDispense(BlockDispenseArmorEvent e) {
 		if (shouldIgnoreEvents(e.getTargetEntity()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onBlockReceiveGameEvent(BlockReceiveGameEvent e) {
 		if (shouldIgnoreEvents(e.getEntity()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onEntityTarget(EntityTargetEvent e) {
 		if (shouldIgnoreEvents(e.getTarget()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onEntityTargetLivingEntity(EntityTargetLivingEntityEvent e) {
 		if (shouldIgnoreEvents(e.getTarget()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent e) {
-		if (shouldIgnoreEvents(e.getEntity(), e.getCause() != DamageCause.KILL && e.getCause() != DamageCause.VOID && e.getCause() != DamageCause.SUICIDE))
+		if (e.getCause() == DamageCause.KILL || e.getCause() == DamageCause.VOID || e.getCause() == DamageCause.SUICIDE) return;
+		if (shouldIgnoreEvents(e.getEntity()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onSpectatorTeleport(PlayerTeleportEvent e) {
 		if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
@@ -144,10 +150,10 @@ public class DeadPlayerHandler implements Listener {
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
 		if (e.getEntity() instanceof Player) {
 			Player victim = (Player) e.getEntity();
-			
+
 			if (e.getDamager() instanceof Player) {
 				Player damager = (Player) e.getDamager();
-				
+
 				if (LifeManager.getLives(victim) <= 0 && LifeManager.getLives(damager) >= 1) {
 					Location location = victim.getLocation().add(0, 50, 0);
 					while (location.getBlock().getType() != Material.AIR) {
@@ -157,30 +163,36 @@ public class DeadPlayerHandler implements Listener {
 				}
 			}
 		}
-		
-		if (shouldIgnoreEvents(e.getDamager(), e.getCause() != DamageCause.KILL && e.getCause() != DamageCause.VOID && e.getCause() != DamageCause.SUICIDE))
+
+		if (e.getCause() == DamageCause.KILL || e.getCause() == DamageCause.VOID || e.getCause() == DamageCause.SUICIDE) return;
+		if (shouldIgnoreEvents(e.getDamager()))
 			e.setCancelled(true);
 	}
-	
-	
+
+
 	@EventHandler
 	public void onEntityItemPickup(EntityPickupItemEvent e) {
-		if (shouldIgnoreEvents(e.getEntity()))
+		if (shouldIgnoreEvents(e.getEntity())) {
+			boolean isEdenApple = EdenApple.TYPE.equals(ItemUtil.getType(e.getItem().getItemStack()));
+			boolean ghostsCanRevive = plugin.getConfig().getBoolean("items.eden-apple.revive-ghosts");
+			if (isEdenApple && ghostsCanRevive) return;
+
 			e.setCancelled(true);
+		}
 	}
-	
+
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
 		if (shouldIgnoreEvents(e.getPlayer()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onHungerLoss(FoodLevelChangeEvent e) {
 		if (shouldIgnoreEvents(e.getEntity()))
 			e.setCancelled(true);
 	}
-	
+
 	@EventHandler
 	public void onEntitySpawn(EntitySpawnEvent e) {
 		if (e.getEntity() instanceof Warden) {
@@ -189,36 +201,33 @@ public class DeadPlayerHandler implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		if (e.getPlayer().getGameMode() != GameMode.SPECTATOR) return;
 		if (LifeManager.getLives(e.getPlayer()) > 0) return;
-		
+
 		e.getPlayer().removePotionEffect(PotionEffectType.DARKNESS);
 		e.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
 		e.getPlayer().setGameMode(GameMode.ADVENTURE);
 	}
-	
+
 	public static boolean shouldIgnoreEvents(Entity e) {
 		return shouldIgnoreEvents(e, true);
 	}
-	
+
 	public static boolean shouldIgnoreEvents(Entity e, boolean extraCondition) {
 		if (e instanceof Player) {
 			Player p = (Player) e;
-			if (p.getGameMode() != GameMode.CREATIVE && LifeManager.getLives(p) <= 0)
-				if (extraCondition)	
-					return true;
+			return p.getGameMode() != GameMode.CREATIVE && LifeManager.getLives(p) <= 0;
 		}
-			
-		
+
 		return false;
 	}
-	
+
 	public static void clearWardenAnger(Warden warden, Player player) {
 		warden.setAnger(player, 0);
 		CommandUtil.getTeamOfPlayer(player).addEntry(warden.getUniqueId().toString());
 	}
-	
+
 }

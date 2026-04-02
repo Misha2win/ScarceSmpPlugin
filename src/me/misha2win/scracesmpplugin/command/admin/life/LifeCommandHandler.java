@@ -45,11 +45,6 @@ public class LifeCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		if (lives < 1) {
-			sender.sendMessage(ChatColor.RED + "You cannot give less than 1 life!");
-			return true;
-		}
-
 		LinkedList<Player> players = new LinkedList<>();
 		if (args.length == 2 && sender instanceof Player) {
 			players.add((Player) sender);
@@ -70,46 +65,61 @@ public class LifeCommandHandler implements CommandExecutor {
 			applyLifeAction(args[0], player, lives);
 		}
 
-		if (players.size() == 1) {
-			CommandUtil.logCommand(sender, String.format("Set %s%s%%s's lives to %d", players.get(0).getDisplayName(), ChatColor.GRAY, lives));
+		if (args[0].equals("add")) {
+			if (players.size() == 1) {
+				CommandUtil.logCommand(sender, String.format("Gave %d lives to %s", lives, players.get(0).getDisplayName()));
+			} else {
+				CommandUtil.logCommand(sender, String.format("Gave %d lives to %d players", lives, players.size()));
+			}
+		} else if (args[0].equals("remove")) {
+			if (players.size() == 1) {
+				CommandUtil.logCommand(sender, String.format("Removed %d lives from %s", lives, players.get(0).getDisplayName()));
+			} else {
+				CommandUtil.logCommand(sender, String.format("Removed %d lives from %d players", lives, players.size()));
+			}
+		} else if (args[0].equals("set")) {
+			if (players.size() == 1) {
+				CommandUtil.logCommand(sender, String.format("Set %s%s%%s's lives to %d", players.get(0).getDisplayName(), ChatColor.GRAY, lives));
+			} else {
+				CommandUtil.logCommand(sender, String.format("Set %s player's lives to %d", players.size(), lives));
+			}
 		} else {
-			CommandUtil.logCommand(sender, String.format("Set %s player's lives to %d", players.size(), lives));
+			sender.sendMessage(ChatColor.RED + "Unknown action!");
 		}
 
 		return true;
 	}
 
-	public void applyLifeAction(String action, Player player, int lives) {
+	public int applyLifeAction(String action, Player player, int lives) {
 		if (action.equals("add")) {
-			addLives(player, lives);
+			return addLives(player, lives);
 		} else if (action.equals("remove")) {
-			removeLives(player, lives);
+			return removeLives(player, lives);
 		} else if (action.equals("set")) {
-			setLives(player, lives);
+			return setLives(player, lives);
 		}
+		return LifeManager.getLives(player);
 	}
 
-	public void addLives(Player player, int numOfLives) {
-		setLives(player, LifeManager.getLivesScoreboard(player).getScore() + numOfLives);
-
+	public int addLives(Player player, int numOfLives) {
 		if (numOfLives == 1)
 			player.sendMessage(ChatColor.GREEN + "You have received a live!");
 		else
 			player.sendMessage(ChatColor.GREEN + "You have received " + numOfLives + " lives!");
 
+		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() + numOfLives);
 	}
 
-	public void removeLives(Player player, int numOfLives) {
-		setLives(player, LifeManager.getLivesScoreboard(player).getScore() - numOfLives);
-
+	public int removeLives(Player player, int numOfLives) {
 		if (numOfLives == 1)
 			player.sendMessage(ChatColor.RED + "One life has been taking from you!");
 		else
 			player.sendMessage(ChatColor.RED + (numOfLives + " lives have been taken from you!"));
 
+		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() - numOfLives);
 	}
 
-	public void setLives(Player player, int numOfLives) {
+	public int setLives(Player player, int numOfLives) {
 		Score playerScore = LifeManager.getLivesScoreboard(player);
 
 		if (playerScore.getScore() > numOfLives) {
@@ -121,6 +131,8 @@ public class LifeCommandHandler implements CommandExecutor {
 		} else {
 			// Nothing changed!
 		}
+
+		return LifeManager.getLives(player);
 	}
 
 }
