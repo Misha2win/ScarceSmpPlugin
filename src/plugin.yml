@@ -1,9 +1,9 @@
 name: ScarceLifeSmp
-version: 2.1
+version: 2.2
 author: Misha2win
 main: me.misha2win.scracesmpplugin.ScarceLife
 description: the plugin for the ScarceLifeSmp
-api-version: '1.21.11'
+api-version: '26.3'
 
 commands:
 
@@ -48,5 +48,5 @@ commands:
 
   scarcetp:
     description: allows an oped player to tp to any world
-    usage: "Usage: /tpa (world name)"
+    usage: "Usage: /scarcetp (world name)"
     aliases: [tpscarce]

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -93,7 +94,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onVillagerAcquireTrade(VillagerAcquireTradeEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		MerchantRecipe oldRecipe = e.getRecipe();
 
@@ -114,7 +116,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onLootGenerate(LootGenerateEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		List<ItemStack> loot = e.getLoot();
 		for (int i = 0; i < loot.size(); i++) {
@@ -124,7 +127,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onFish(PlayerFishEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
 		if (!(e.getCaught() instanceof Item)) return;
@@ -136,7 +140,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onBarter(PiglinBarterEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		List<ItemStack> outcome = e.getOutcome();
 		for (int i = 0; i < outcome.size(); i++) {
@@ -146,7 +151,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onCreatureSpawn(CreatureSpawnEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		if (!(e.getEntity() instanceof LivingEntity)) return;
 		LivingEntity livingEntity = (LivingEntity) e.getEntity();
@@ -164,7 +170,8 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onEntityDeath(EntityDeathEvent event) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		List<ItemStack> drops = event.getDrops();
 		for (int i = 0; i < drops.size(); i++) {
@@ -184,14 +191,16 @@ public class EnchantmentsHandler implements Listener {
 
 	@EventHandler
 	public void onPrepareAnvil(PrepareAnvilEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		e.setResult(sanitizeItem(e.getResult()));
 	}
 
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchantments.weak-only")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchantments.weak-only")) return;
 
 		Inventory inventory = e.getInventory();
 		sanitizeInventory(inventory);

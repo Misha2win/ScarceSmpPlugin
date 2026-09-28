@@ -43,26 +43,36 @@ public class TpacceptCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		int numRequests = 0;
 		Player p2 = null;
-		for (Player value : TpaCommandHandler.REQUESTS.keySet()) {
-			if (TpaCommandHandler.REQUESTS.get(value).equals(p)) {
-				if (p2 != null) {
-					if (args.length != 1) {
-						p.sendMessage(ChatColor.RED + "You have too many requests!");
-						p.sendMessage(ChatColor.RED + "You need to specify whose request to accept!");
-						return true;
-					}
-				}
-				p2 = value;
-				numRequests++;
-			}
-		}
 
-		if (numRequests > 1) {
+		if (args.length > 0) {
 			p2 = Bukkit.getPlayer(args[0]);
+
 			if (p2 == null) {
 				p.sendMessage(ChatColor.RED + args[0] + " is not a player!");
+				return true;
+			}
+
+			if (!TpaCommandHandler.REQUESTS.containsKey(p2) || !TpaCommandHandler.REQUESTS.get(p2).equals(p)) {
+				p.sendMessage(ChatColor.RED + "No pending request from " + args[0] + "!");
+				return true;
+			}
+		} else {
+			for (Player value : TpaCommandHandler.REQUESTS.keySet()) {
+				if (TpaCommandHandler.REQUESTS.get(value).equals(p)) {
+					if (p2 != null) {
+						if (args.length != 1) {
+							p.sendMessage(ChatColor.RED + "You have too many requests!");
+							p.sendMessage(ChatColor.RED + "You need to specify whose request to accept!");
+							return true;
+						}
+					}
+					p2 = value;
+				}
+			}
+
+			if (p2 == null) {
+				p.sendMessage(ChatColor.RED + "You do not have any pending teleport requests!");
 				return true;
 			}
 		}

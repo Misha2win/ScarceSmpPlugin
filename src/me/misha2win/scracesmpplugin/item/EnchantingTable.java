@@ -244,6 +244,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlace(ScarceLife plugin, BlockPlaceEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		ItemMeta itemMeta = e.getItemInHand().getItemMeta();
 		TileState tileState = (TileState) e.getBlockPlaced().getState();
 
@@ -261,8 +264,6 @@ public class EnchantingTable {
 
 		removeEffects(plugin, player);
 
-		FileConfiguration config = plugin.getConfig();
-
 		removeGlow(plugin);
 
 		// Set the pickup cooldown of this enchanting table
@@ -278,6 +279,9 @@ public class EnchantingTable {
 	}
 
 	public static void onBreak(ScarceLife plugin, BlockBreakEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		Player player = e.getPlayer();
 		if (player.getInventory().firstEmpty() == -1) {
 			player.sendMessage(ChatColor.RED + "You must have at least one empty inventory slot in order to pick up the enchanting table!");
@@ -296,7 +300,6 @@ public class EnchantingTable {
 
 		e.setDropItems(false);
 
-		FileConfiguration config = plugin.getConfig();
 		Location location = config.getLocation("items.enchanting-table.location");
 		if (location != null) BlockDisplayUtil.removeBlockDisplays(plugin, location);
 
@@ -311,6 +314,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlayerDropItem(ScarceLife plugin, PlayerDropItemEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		e.getPlayer().sendMessage(ChatColor.RED + "You cannot drop the enchanting table! It must be placed!");
 		e.setCancelled(true);
 
@@ -323,6 +329,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlayerOpenInventory(ScarceLife plugin, InventoryOpenEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		Player player = (Player) e.getPlayer();
 
 		if (inventoryContainsType(player.getInventory())) {
@@ -335,6 +344,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlayerConsumeItem(ScarceLife plugin, PlayerItemConsumeEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		if (inventoryContainsType(e.getPlayer().getInventory())) {
 			if (e.getItem().getType() == Material.MILK_BUCKET) {
 				Bukkit.getScheduler().runTask(plugin, () -> {
@@ -345,6 +357,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlayerDeath(ScarceLife plugin, PlayerDeathEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		if (inventoryContainsType(e.getEntity().getInventory())) {
 			Player victim = e.getEntity();
 
@@ -379,6 +394,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPlayerQuit(ScarceLife plugin, PlayerQuitEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		if (inventoryContainsType(e.getPlayer().getInventory())) {
 			Player player = e.getPlayer();
 			PlayerInventory playerInv = player.getInventory();
@@ -396,6 +414,9 @@ public class EnchantingTable {
 	}
 
 	public static void onPrepareCraft(ScarceLife plugin, PrepareItemCraftEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		ItemStack result = e.getInventory().getResult();
 		ItemMeta meta = result.getItemMeta();
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
@@ -405,6 +426,9 @@ public class EnchantingTable {
 	}
 
 	public static void onCraft(ScarceLife plugin, CraftItemEvent e) {
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		if (!(e.getWhoClicked() instanceof Player)) {
 			e.setCancelled(true);
 			return;
@@ -430,7 +454,9 @@ public class EnchantingTable {
 	}
 
 	public static void onEnchantPrepare(ScarceLife plugin, PrepareItemEnchantEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchanting-table.weak-enchants")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+		if (!config.getBoolean("items.enchanting-table.weak-enchants")) return;
 
 		for (EnchantmentOffer offer : e.getOffers()) {
 			offer.setEnchantmentLevel(1);
@@ -438,7 +464,9 @@ public class EnchantingTable {
 	}
 
 	public static void onEnchant(ScarceLife plugin, EnchantItemEvent e) {
-		if (!plugin.getConfig().getBoolean("items.enchanting-table.weak-enchants")) return;
+		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+		if (!config.getBoolean("items.enchanting-table.weak-enchants")) return;
 
 		Map<Enchantment, Integer> enchants = e.getEnchantsToAdd();
 		for (Enchantment enchant : e.getEnchantsToAdd().keySet()) {
@@ -448,6 +476,8 @@ public class EnchantingTable {
 
 	public static void onEnable(ScarceLife plugin) {
 		FileConfiguration config = plugin.getConfig();
+		if (!config.getBoolean("items.enchanting-table.enabled")) return;
+
 		boolean craftable = config.getBoolean("items.enchanting-table.craftable");
 		if (!craftable) {
 			Bukkit.removeRecipe(RECIPE_KEY);

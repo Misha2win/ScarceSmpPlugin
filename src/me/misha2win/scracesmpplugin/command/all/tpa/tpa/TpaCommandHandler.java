@@ -71,7 +71,7 @@ public class TpaCommandHandler implements CommandExecutor {
 
 		REQUESTS.put(p, p2);
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
-			if (REQUESTS.containsKey(p)) {
+			if (REQUESTS.containsKey(p) && REQUESTS.get(p).equals(p2)) {
 				REQUESTS.remove(p);
 				p.sendMessage(ChatColor.RED + "Your teleport request to " + p2.getName() + " has expired!");
 				p2.sendMessage(ChatColor.RED + p.getName() + "'s teleport request to you has expired!");

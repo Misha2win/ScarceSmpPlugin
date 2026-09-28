@@ -1,6 +1,7 @@
 package me.misha2win.scracesmpplugin.command.all.tpa.tpcancel;
 
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,7 +14,6 @@ import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class TpcancelCommandHandler implements CommandExecutor {
 
-	@SuppressWarnings("unused")
 	private ScarceLife plugin;
 
 	public TpcancelCommandHandler(ScarceLife plugin) {
@@ -22,7 +22,9 @@ public class TpcancelCommandHandler implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!this.plugin.getConfig().getBoolean("commands.tpa.enabled")) {
+		FileConfiguration config = this.plugin.getConfig();
+
+		if (!config.getBoolean("commands.tpa.enabled")) {
 			sender.sendMessage(CommandUtil.Warnings.DISABLED);
 			return true;
 		}
@@ -38,7 +40,7 @@ public class TpcancelCommandHandler implements CommandExecutor {
 
 		Player p = (Player) sender;
 
-		if (LifeManager.getLives(p) > 0) {
+		if (config.getBoolean("commands.tpa.only-ghosts") && LifeManager.getLives(p) > 0) {
 			p.sendMessage(ChatColor.RED + "You must be dead to use this command!");
 			return true;
 		}

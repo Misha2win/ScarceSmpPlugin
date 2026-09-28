@@ -2,6 +2,7 @@ package me.misha2win.scracesmpplugin.handler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,15 +23,17 @@ public class PlayerJoinHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
+		FileConfiguration config = plugin.getConfig();
+
 		Player player = e.getPlayer();
 
-		if (plugin.getConfig().getBoolean("developer.op-only.enabled") && !player.isOp()) {
+		if (config.getBoolean("developer.op-only.enabled") && !player.isOp()) {
 			player.kickPlayer("The server is not allowing unopped players to join right now!");
 		}
 
 		if (!player.hasPlayedBefore() || LifeManager.getLivesScoreboard(player) == null) {
 			// Player is logging in for first time or the player does not have a lives scoreboard
-			int lives = plugin.getConfig().getInt("lives.initial");
+			int lives = config.getInt("lives.initial");
 			LifeManager.getLivesScoreboard(player).setScore(lives);
 			Bukkit.getLogger().info(player.getName() + " joined for the first time with " + lives + " lives");
 		} else {
@@ -40,7 +43,7 @@ public class PlayerJoinHandler implements Listener {
 
 		LifeManager.updateTeam(player);
 
-		if (LifeManager.getLives(player) <= 0 && !this.plugin.getConfig().getBoolean("ghost.enabled")) {
+		if (LifeManager.getLives(player) <= 0 && !config.getBoolean("ghost.enabled")) {
 			player.kickPlayer("You have lost your last life!");
 		}
 
@@ -50,10 +53,12 @@ public class PlayerJoinHandler implements Listener {
 			}
 		}
 
-		EnchantingTable.setFooter(plugin);
-		Bukkit.getScheduler().runTask(plugin, () -> {
-			player.sendMessage(ChatColor.GREEN + "You can use the tab list to see where the enchanting table is!");
-		});
+		if (config.getBoolean("items.enchanting-table.enabled")) {
+			EnchantingTable.setFooter(plugin);
+			Bukkit.getScheduler().runTask(plugin, () -> {
+				player.sendMessage(ChatColor.GREEN + "You can use the tab list to see where the enchanting table is!");
+			});
+		}
 	}
 
 }

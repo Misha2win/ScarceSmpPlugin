@@ -38,6 +38,7 @@ import me.misha2win.scracesmpplugin.handler.EnchantmentsHandler;
 import me.misha2win.scracesmpplugin.handler.CustomItemEventHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerDeathHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
+import me.misha2win.scracesmpplugin.handler.PlayerQuitHandler;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
@@ -57,13 +58,14 @@ public class ScarceLife extends JavaPlugin {
 		config.options().copyDefaults(true);
 		saveConfig();
 
-		String versionString = "Version 1.12.11.2";
+		String versionString = "Version 26.3";
 
 		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is enabled! " + versionString);
 
 		Bukkit.getPluginManager().registerEvents(new CustomItemEventHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerDeathHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinHandler(this), this);
+		Bukkit.getPluginManager().registerEvents(new PlayerQuitHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new DeadPlayerHandler(this), this);
 		Bukkit.getPluginManager().registerEvents(new EnchantmentsHandler(this), this);
 

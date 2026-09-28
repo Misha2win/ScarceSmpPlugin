@@ -1,5 +1,7 @@
 package me.misha2win.scracesmpplugin.util;
 
+import java.util.Optional;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -8,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.world.scores.TeamColor;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 
@@ -75,7 +79,11 @@ public class PacketSender {
 			return;
 
 		PlayerTeam fakeCopyTeam = new PlayerTeam(new Scoreboard(), playerTeam.getName());
-		fakeCopyTeam.setColor(CraftChatMessage.getColor(color));
+		fakeCopyTeam.setColor(Optional.of(
+				TeamColor.byName(
+						TextColor.fromLegacyFormat(CraftChatMessage.getColor(color)).name
+				)
+		));
 		((CraftPlayer) player).getHandle().connection.sendPacket(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(fakeCopyTeam, true));
 	}
 

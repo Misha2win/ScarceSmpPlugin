@@ -14,7 +14,7 @@ ScarceLife is a hardcore-style SMP plugin where players have limited lives and b
 - **Ghost Mode** – Players with 0 lives become ghosts instead of being kicked.
 - **Player Head Drops** – Players drop heads with their death message.
 - **Configurable Commands & Items** – Enable or disable commands like `/givelife` and `/tpa`, and toggle features such as ghost mode or custom items.
-- **Eden Apple** – A rare item that grants extra lives. Crafted with player heads, netherite, and **Otherworldly Concoction** in a smithing table. 
+- **Eden Apple** – A rare item that grants extra lives. Crafted with player heads, netherite, and **Otherworldly Concoction** in a smithing table.
 - **Otherworldly Concoction** - A crafting ingredient for the **Eden Apple**. Created with wither skeleton skulls, amethyst, and dragon's breath.
 - **Cursed Enchanting Table** – Replaces the normal enchanting table with a one-time craftable version. The player who crafts or holds it becomes cursed, revealing their location and turning the table into a server-wide objective.
 
@@ -70,10 +70,10 @@ items:
 
 ## Gameplay
 
-When a player dies, they lose a life.  
+When a player dies, they lose a life.
 If they reach 0 lives, they become a ghost.
 
-Ghosts can still move around the world but have limited interaction with it.  
+Ghosts can still move around the world but have limited interaction with it.
 They can fly and are given special items that allow abilities like blinking in and out of existence.
 
 Players can regain lives by consuming an Eden Apple or receiving lives from other players using `/givelife`.
@@ -81,9 +81,9 @@ Players can regain lives by consuming an Eden Apple or receiving lives from othe
 Eden Apples are crafted using player heads, a netherite ingot, and the **Otherworldly Concoction** item in a smithing table.
 
 Players drop heads that display their death message and the number of lives they had remaining.
-Since heads are used in the crafting recipe for Eden apples, players can regain their life by using their own head in the crafting recipe. 
+Since heads are used in the crafting recipe for Eden apples, players can regain their life by using their own head in the crafting recipe.
 
 ## Compatibility
 
 Tested on:
-- Spigot 1.21.11
+- Spigot 26.3

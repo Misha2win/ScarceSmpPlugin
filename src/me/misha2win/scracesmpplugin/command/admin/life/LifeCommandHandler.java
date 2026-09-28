@@ -52,7 +52,8 @@ public class LifeCommandHandler implements CommandExecutor {
 			if (args[1].startsWith("@")) {
 				players.addAll(CommandUtil.getPlayersFromSelector(sender, args[1]));
 			} else {
-				players.add(Bukkit.getPlayer(args[1]));
+				Player player = Bukkit.getPlayer(args[1]);
+				if (player != null) players.add(player);
 			}
 		}
 
@@ -96,7 +97,7 @@ public class LifeCommandHandler implements CommandExecutor {
 		} else if (action.equals("remove")) {
 			return removeLives(player, lives);
 		} else if (action.equals("set")) {
-			return setLives(player, lives);
+			return setLives(player, lives, true);
 		}
 		return LifeManager.getLives(player);
 	}
@@ -107,7 +108,7 @@ public class LifeCommandHandler implements CommandExecutor {
 		else
 			player.sendMessage(ChatColor.GREEN + "You have received " + numOfLives + " lives!");
 
-		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() + numOfLives);
+		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() + numOfLives, false);
 	}
 
 	public int removeLives(Player player, int numOfLives) {
@@ -116,16 +117,22 @@ public class LifeCommandHandler implements CommandExecutor {
 		else
 			player.sendMessage(ChatColor.RED + (numOfLives + " lives have been taken from you!"));
 
-		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() - numOfLives);
+		return setLives(player, LifeManager.getLivesScoreboard(player).getScore() - numOfLives, false);
 	}
 
-	public int setLives(Player player, int numOfLives) {
+	public int setLives(Player player, int numOfLives, boolean notifyPlayer) {
 		Score playerScore = LifeManager.getLivesScoreboard(player);
 
 		if (playerScore.getScore() > numOfLives) {
+			if (notifyPlayer) {
+				player.sendMessage(ChatColor.RED + "Your lives have been set to " + LifeManager.getChatColor(numOfLives) + numOfLives + ChatColor.RED + ".");
+			}
 			playerScore.setScore(numOfLives + 1);
 			LifeManager.removeLife(player, playerScore.getScore() > 1);
 		} else if (playerScore.getScore() < numOfLives) {
+			if (notifyPlayer) {
+				player.sendMessage(ChatColor.GREEN + "Your lives have been set to " + LifeManager.getChatColor(numOfLives) + numOfLives + ChatColor.GREEN + ".");
+			}
 			playerScore.setScore(numOfLives - 1);
 			LifeManager.addLife(player);
 		} else {

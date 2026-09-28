@@ -19,7 +19,6 @@ stronghold:
     z: 0
 
 commands:
-
   tpa: # Command that allows players to teleport to each other.
     enabled: true
     only-ghosts: true # If true, only ghosts can send teleport requests.
@@ -47,6 +46,9 @@ items:
   ghost-diamond: # Allows ghosts to spawn ghost diamond ore to troll alive players
     enabled: false # Item is not fully implemented
     cooldown-ticks: 20 # 1 second
+
+  player-head: # Item that represents the player's head.
+    consumable: false # If true, the player's head can be eaten to gain a life.
 
   eden-apple: # Item that when eaten gives the player an extra life.
     enabled: true
