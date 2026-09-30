@@ -1,7 +1,6 @@
 package me.misha2win.scracesmpplugin;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,6 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -25,6 +25,10 @@ import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeTabCompleter;
+import me.misha2win.scracesmpplugin.util.CommandUtil;
+import net.minecraft.server.MinecraftServer;
+import me.misha2win.scracesmpplugin.command.all.item.ItemCommandHandler;
+import me.misha2win.scracesmpplugin.command.all.item.ItemTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpa.TpaTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.tpa.tpaccept.TpacceptCommandHandler;
@@ -42,7 +46,6 @@ import me.misha2win.scracesmpplugin.handler.PlayerQuitHandler;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
-import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class ScarceLife extends JavaPlugin {
 
@@ -50,13 +53,15 @@ public class ScarceLife extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		ItemRegistry.registerItems();
-		ItemRecipeRegistry.registerAll();
-
 		saveDefaultConfig();
+
 		FileConfiguration config = getConfig();
 		config.options().copyDefaults(true);
 		saveConfig();
+
+		ItemRegistry.registerItems();
+		EnchantingTable.onEnable(this);
+		ItemRecipeRegistry.registerAll();
 
 		String versionString = "Version 26.3";
 
@@ -75,31 +80,31 @@ public class ScarceLife extends JavaPlugin {
 		registerCommand("scarcegive", new ScarceGiveCommandHandler(this), new ScarceGiveTabCompleter(this));
 		registerCommand("life", new LifeCommandHandler(this), new LifeTabCompleter(this));
 		registerCommand("givelife", new GiveLifeCommandHandler(this), new GiveLifeTabCompleter(this));
-		registerCommand("tpaccept", new TpacceptCommandHandler(this), new TpacceptTabCompleter(this));
-		registerCommand("tpdeny", new TpdenyCommandHandler(this), new TpdenyTabCompleter(this));
+		registerCommand("tpaccept", new TpacceptCommandHandler(this), new TpacceptTabCompleter(this), "tpyes");
+		registerCommand("tpdeny", new TpdenyCommandHandler(this), new TpdenyTabCompleter(this), "tpno");
 		registerCommand("tpcancel", new TpcancelCommandHandler(this), new TpcancelTabCompleter(this));
 		registerCommand("tpa", new TpaCommandHandler(this), new TpaTabCompleter(this));
 		registerCommand("scarcetp", new ScarceTpCommandHandler(this), new ScarceTpTabCompleter(this));
+		registerCommand("item", new ItemCommandHandler(this), new ItemTabCompleter(this));
 
 		// Setup scoreboard
 		setupScoreboard();
 
 		AutoReloadManager.start(this);
-		EnchantingTable.onEnable(this);
 
-		long ticks = 20 * 5;
-		AtomicReference<Long> lastTime = new AtomicReference<>(System.nanoTime());
 		Bukkit.getScheduler().runTaskTimer(this, () -> {
-			long now = System.nanoTime();
-			double mspt = (now - lastTime.get()) / 1_000_000.0 / ticks;
-			lastTime.set(now);
+			MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
 
-			double tps = 1000.0 / mspt;
-			if (tps > 20) tps = 20;
+			double mspt = server.getAverageTickTimeNanos() / 1_000_000.0;
+			double tps = Math.min(20.0, 1000.0 / mspt);
 
-			String header  = String.format("%sTPS (5s): %s%.1f %sMSPT (5s): %s%.1f", ChatColor.GREEN, ChatColor.WHITE, tps, ChatColor.GREEN, ChatColor.WHITE, mspt);
+			String header = String.format(
+					"%sTPS (5s): %s%.1f %sMSPT (5s): %s%.1f",
+					ChatColor.GREEN, ChatColor.WHITE, tps,
+					ChatColor.GREEN, ChatColor.WHITE, mspt
+			);
 			CommandUtil.setHeader(header);
-		}, ticks, ticks);
+		}, 100, 100);
 	}
 
 	@Override
@@ -120,8 +125,7 @@ public class ScarceLife extends JavaPlugin {
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("health scoreboard team already exists!");
 		} finally {
-			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("health")
-					.setDisplaySlot(DisplaySlot.BELOW_NAME);
+			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("health").setDisplaySlot(DisplaySlot.BELOW_NAME);
 		}
 
 		try {
@@ -137,13 +141,11 @@ public class ScarceLife extends JavaPlugin {
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("lives scoreboard objective already exists!");
 		} finally {
-			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("lives")
-					.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+			Bukkit.getScoreboardManager().getMainScoreboard().getObjective("lives").setDisplaySlot(DisplaySlot.PLAYER_LIST);
 		}
 
 		try {
-			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("edenapples", Criteria.DUMMY,
-					"Eden Apples Eaten");
+			Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("edenapples", Criteria.DUMMY, "Eden Apples Eaten");
 		} catch (Exception ex) {
 			Bukkit.getLogger().info("edenapples scoreboard objective already exists!");
 		}

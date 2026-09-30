@@ -37,8 +37,23 @@ public class EdenApple {
 	public static final String TYPE = "eden_apple";
 	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, EdenApple.TYPE);
 
-	public static final NamespacedKey PLAYER_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "player_head_used");
-	public static final NamespacedKey BLOODSTAINED_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "bloodstained");
+	public static final String[] APPLE_LORE = {
+		ChatColor.DARK_RED + "An invaluable price paid.",
+		ChatColor.DARK_RED + "Stores borrowed time.",
+		ChatColor.DARK_RED + "Cold to the touch.",
+		ChatColor.DARK_RED + "Echoes emanate from within.",
+		ChatColor.DARK_RED + "An eye for an eye.",
+		ChatColor.DARK_RED + "Impossibly heavy.",
+		ChatColor.DARK_RED + "Stained with a crimson red."
+	};
+
+	public static final String[] CONSUME_LORE = {
+		ChatColor.DARK_GREEN + "You are overwhelmed by an immense sense of power...",
+		ChatColor.GREEN + "You feel a strong jolt against your very being...",
+		ChatColor.YELLOW + "A familiar, fleeting sensation washes over you...",
+		ChatColor.RED + "For an instant, you could just barely make out a face...",
+		"" + ChatColor.DARK_RED + ChatColor.MAGIC + "You can almost see it" + ChatColor.RESET + ChatColor.DARK_RED + "! " + ChatColor.DARK_RED + ChatColor.MAGIC + "If only you had another" + ChatColor.RESET + ChatColor.DARK_RED + "..."
+	};
 
 	public static void register() {
 		ItemRegistry.register(TYPE, EdenApple::createItem);
@@ -61,9 +76,9 @@ public class EdenApple {
 		food.setCanAlwaysEat(true);
 		edenMeta.setFood(food);
 
-		edenMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Forbidden Eden Apple");
+		edenMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Eden Apple");
 
-		edenMeta.setLore(Arrays.asList(String.format("%sAn invaluable price paid.", ChatColor.DARK_RED)));
+		edenMeta.setLore(Arrays.asList(EdenApple.APPLE_LORE[(int) (Math.random() * EdenApple.APPLE_LORE.length)]));
 
 		edenMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		edenMeta.addEnchant(Enchantment.MENDING, 1, false);
@@ -117,12 +132,14 @@ public class EdenApple {
 		LifeManager.addLife(player);
 		LifeManager.getEdenScoreboard(player).setScore(edenApplesEaten + 1);
 
-		player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20 * 60 * 5, 255, false, true, true));
-		player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 20 * 5, 1, false, false, false));
+		int clampedIndex = Math.min(edenApplesEaten, EdenApple.CONSUME_LORE.length - 1);
+
+		player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20 * 60 * Math.max(5 - clampedIndex, 0), 255, false, true, true));
+		player.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 20 * 5 * Math.min(clampedIndex + 1, 5), 1, false, false, false));
 
 		player.getWorld().playSound(player, Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 0.1f, 1f);
 
-		player.sendMessage(ChatColor.RED + "You are overwhelmed by an immense sense of power...");
+		player.sendMessage(EdenApple.CONSUME_LORE[clampedIndex]);
 		player.sendMessage(ChatColor.GREEN + "You have received a life!");
 
 		Bukkit.getLogger().info(e.getPlayer().getName() + " has eaten an Eden Apple!");

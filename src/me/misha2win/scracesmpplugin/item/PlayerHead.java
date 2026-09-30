@@ -182,6 +182,7 @@ public class PlayerHead {
 
 	public static void onItemDespawn(ScarceLife plugin, ItemDespawnEvent e) {
 		e.setCancelled(true);
+		e.getEntity().setGlowing(true);
 	}
 
 	public static void onPlayerDeath(ScarceLife plugin, PlayerDeathEvent e) {

@@ -10,8 +10,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.contents.objects.AtlasSprite;
+import net.minecraft.network.chat.contents.objects.PlayerSprite;
 import net.minecraft.world.scores.TeamColor;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.PlayerHeadItem;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 
@@ -79,11 +95,7 @@ public class PacketSender {
 			return;
 
 		PlayerTeam fakeCopyTeam = new PlayerTeam(new Scoreboard(), playerTeam.getName());
-		fakeCopyTeam.setColor(Optional.of(
-				TeamColor.byName(
-						TextColor.fromLegacyFormat(CraftChatMessage.getColor(color)).name
-				)
-		));
+		fakeCopyTeam.setColor(Optional.of(TeamColor.byName(TextColor.fromLegacyFormat(CraftChatMessage.getColor(color)).name)));
 		((CraftPlayer) player).getHandle().connection.sendPacket(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(fakeCopyTeam, true));
 	}
 
@@ -139,6 +151,57 @@ public class PacketSender {
 		PlayerTeam fakeCopyTeam = new PlayerTeam(new Scoreboard(), team.getName());
 		ClientboundSetPlayerTeamPacket teamPacket = ClientboundSetPlayerTeamPacket.createPlayerPacket(fakeCopyTeam, otherPlayer.getName(), action);
 		((CraftPlayer) player).getHandle().connection.sendPacket(teamPacket);
+	}
+
+	public static void sendItemTooltipChat(Player player) {
+		ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+		ItemStack item = serverPlayer.getMainHandItem();
+
+		Component serverPlayerComponent = Component.literal("<").append(PlayerTeam.formatNameForTeam(serverPlayer.getTeam(), serverPlayer.getName())).append(Component.literal(">"));
+
+		MutableComponent itemComponent = getSpriteComponent(item).withStyle(style -> {
+			return style.withHoverEvent(
+				new HoverEvent.ShowItem(ItemStackTemplate.fromStack(item))
+			);
+		}).append(Component.literal(" ")).append(item.getDisplayName());
+
+		if (item.count() > 1) {
+			itemComponent.append(Component.literal(" x" + item.count()));
+		} else if (item.isDamageableItem()) {
+			int maxDurability = item.getMaxDamage();
+			int damageTaken = item.getDamageValue();
+			int durabilityRemaining = maxDurability - damageTaken;
+			itemComponent.append(Component.literal(" (" + durabilityRemaining + " / " + maxDurability + ")"));
+		}
+
+		Component messageComponent = Component.empty().append(serverPlayerComponent).append(Component.literal(" ")).append(itemComponent);
+
+		ClientboundSystemChatPacket msg = new ClientboundSystemChatPacket(messageComponent, false);
+
+		for (Player other : Bukkit.getOnlinePlayers()) {
+			((CraftPlayer) other).getHandle().connection.sendPacket(msg);
+		}
+	}
+
+	private static MutableComponent getSpriteComponent(ItemStack item) {
+		if (item.getItem() instanceof PlayerHeadItem) {
+			ResolvableProfile profile = item.get(DataComponents.PROFILE);
+			if (profile == null) {
+				Bukkit.getLogger().info("Could not resolve profile");
+			}
+
+			return Component.object(new PlayerSprite(profile, true), item.getDisplayName());
+		} else if (item.getItem() instanceof BlockItem block) {
+			Identifier itemKey = BuiltInRegistries.BLOCK.getKey(block.getBlock());
+			Identifier spriteKey = itemKey.withPrefix("block/");
+
+			return Component.object(new AtlasSprite(AtlasIds.BLOCKS, spriteKey), item.getDisplayName());
+		}
+
+		Identifier itemKey = BuiltInRegistries.ITEM.getKey(item.getItem());
+		Identifier spriteKey = itemKey.withPrefix("item/");
+
+		return Component.object(new AtlasSprite(AtlasIds.ITEMS, spriteKey), item.getDisplayName());
 	}
 
 }

@@ -58,9 +58,7 @@ public class EnchantingTable {
 	private static Long cooldown;
 
 	public static void register() {
-		Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
 		ItemRegistry.register(TYPE, EnchantingTable::createItem);
-		ItemRecipeRegistry.register(TYPE, getRecipe());
 		ItemEventRouter.on(TYPE, BlockBreakEvent.class, EnchantingTable::onBreak);
 		ItemEventRouter.on(TYPE, BlockPlaceEvent.class, EnchantingTable::onPlace);
 		ItemEventRouter.on(TYPE, PlayerDropItemEvent.class, EnchantingTable::onPlayerDropItem);
@@ -478,9 +476,10 @@ public class EnchantingTable {
 		FileConfiguration config = plugin.getConfig();
 		if (!config.getBoolean("items.enchanting-table.enabled")) return;
 
-		boolean craftable = config.getBoolean("items.enchanting-table.craftable");
-		if (!craftable) {
-			Bukkit.removeRecipe(RECIPE_KEY);
+		Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
+
+		if (config.getBoolean("items.enchanting-table.craftable")) {
+			ItemRecipeRegistry.register(TYPE, getRecipe());
 		}
 
 		Location location = config.getLocation("items.enchanting-table.location");

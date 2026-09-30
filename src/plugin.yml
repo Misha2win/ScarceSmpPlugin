@@ -33,6 +33,7 @@ commands:
   tpaccept:
     description: accepts an incoming teleport request
     usage: "Usage: /tpaccept [player]"
+    aliases: [tpyes]
 
   tpcancel:
     description: cancels a pending teleport request
@@ -41,6 +42,7 @@ commands:
   tpdeny:
     description: denies an incoming teleport request
     usage: "Usage: /tpdeny [player]"
+    aliases: [tpno]
 
   tpa:
     description: allows a dead player to teleport to another player!
@@ -50,3 +52,7 @@ commands:
     description: allows an oped player to tp to any world
     usage: "Usage: /scarcetp (world name)"
     aliases: [tpscarce]
+
+  item:
+    description: shows information about the item in your hand to allow you to prove you have it or to show off its tooltip
+    usage: "Usage: /item"

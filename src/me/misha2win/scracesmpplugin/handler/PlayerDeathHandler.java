@@ -32,8 +32,11 @@ public class PlayerDeathHandler implements Listener {
 		if (this.plugin.getConfig().getBoolean("death.keep-inventory")) {
 			if (LifeManager.getLives(player) <= 1) { // Last life (before processing)
 				e.setKeepInventory(false);
+				e.setKeepLevel(false);
 			} else {
 				e.setKeepInventory(true);
+				e.setKeepLevel(true);
+				e.setDroppedExp(0);
 				e.getDrops().clear();
 			}
 		}
