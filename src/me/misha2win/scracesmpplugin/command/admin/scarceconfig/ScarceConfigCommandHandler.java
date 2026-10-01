@@ -1,11 +1,13 @@
 package me.misha2win.scracesmpplugin.command.admin.scarceconfig;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import me.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
@@ -59,10 +61,30 @@ public class ScarceConfigCommandHandler implements CommandExecutor {
 				return true;
 			}
 
-			config.set(args[1], Boolean.parseBoolean(args[2]));
+			boolean previousValue = config.getBoolean(args[1]);
+			boolean newValue = Boolean.parseBoolean(args[2]);
+			if (previousValue == newValue) {
+				sender.sendMessage(ChatColor.RED + "Nothing changed for '" + args[1] + "'");
+				return true;
+			}
+
+			config.set(args[1], newValue);
+			plugin.saveConfig();
+
+			Bukkit.getPluginManager().callEvent(new ConfigChangeEvent<>(args[1], previousValue, newValue));
 		} else if (config.isInt(args[1])) {
 			try {
-				config.set(args[1], Integer.parseInt(args[2]));
+				int previousValue = config.getInt(args[1]);
+				int newValue = Integer.parseInt(args[2]);
+				if (previousValue == newValue) {
+					sender.sendMessage(ChatColor.RED + "Nothing changed for '" + args[1] + "'");
+					return true;
+				}
+
+				config.set(args[1], newValue);
+				plugin.saveConfig();
+
+				Bukkit.getPluginManager().callEvent(new ConfigChangeEvent<>(args[1], previousValue, newValue));
 			} catch (NumberFormatException e) {
 				sender.sendMessage(ChatColor.RED + "You must provide an integer for '" + args[1] + "'");
 				return true;
@@ -72,7 +94,6 @@ public class ScarceConfigCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		plugin.saveConfig();
 		CommandUtil.logCommand(sender, String.format("Set config '%s' to '%s'", args[1], args[2]));
 
 		return true;

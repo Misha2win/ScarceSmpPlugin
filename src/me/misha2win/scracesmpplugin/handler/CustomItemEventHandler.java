@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import me.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.PlayerHead;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
@@ -108,6 +109,15 @@ public class CustomItemEventHandler implements Listener {
 		if (e.getEntity().getType() == EntityType.EYE_OF_ENDER) {
 			ItemEventRouter.dispatch(plugin, e, EnderEye.TYPE);
 		}
+	}
+
+	@EventHandler
+	public void onConfigChange(ConfigChangeEvent<?> e) {
+		String key = e.getConfigKey();
+		if (!key.startsWith("items.")) return;
+
+		String type = key.substring(6, key.indexOf(".", 6)).replaceAll("-", "_");
+		ItemEventRouter.dispatch(plugin, e, type);
 	}
 
 }

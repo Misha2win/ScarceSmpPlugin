@@ -6,21 +6,25 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
 import org.bukkit.inventory.Recipe;
 
 public class ItemRecipeRegistry {
 
 	private static final Map<String, Recipe> RECIPE_BY_TYPE = new HashMap<>();
 
-	public static void registerAll() {
-		for (String key : RECIPE_BY_TYPE.keySet()) {
-			Bukkit.addRecipe(RECIPE_BY_TYPE.get(key));
-		}
-	}
-
 	public static void register(String type, Recipe recipe) {
 		RECIPE_BY_TYPE.put(type, recipe);
+		Bukkit.addRecipe(recipe);
 		Bukkit.getLogger().info("Registered recipe for '" + type + "'");
+	}
+
+	public static void unregister(String type) {
+		Recipe recipe = RECIPE_BY_TYPE.remove(type);
+		if (recipe instanceof Keyed keyed) {
+			Bukkit.removeRecipe(keyed.getKey());
+		}
+		Bukkit.getLogger().info("Unregistered recipe for '" + type + "'");
 	}
 
 	public static Recipe get(String type) {

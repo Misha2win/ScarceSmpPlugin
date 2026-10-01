@@ -44,7 +44,6 @@ import me.misha2win.scracesmpplugin.handler.PlayerDeathHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerQuitHandler;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
-import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 
 public class ScarceLife extends JavaPlugin {
@@ -61,7 +60,6 @@ public class ScarceLife extends JavaPlugin {
 
 		ItemRegistry.registerItems();
 		EnchantingTable.onEnable(this);
-		ItemRecipeRegistry.registerAll();
 
 		String versionString = "Version 26.3";
 

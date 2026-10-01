@@ -38,6 +38,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
+import me.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
@@ -51,6 +52,7 @@ public class EnchantingTable {
 
 	public static final String TYPE = "enchanting_table";
 
+	public static final Recipe ORIGINAL_RECIPE = Bukkit.getRecipe(NamespacedKey.minecraft("enchanting_table"));
 	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, TYPE);
 
 	private static BukkitTask hideGlowTask;
@@ -70,6 +72,7 @@ public class EnchantingTable {
 		ItemEventRouter.on(TYPE, CraftItemEvent.class, EnchantingTable::onCraft);
 		ItemEventRouter.on(TYPE, PrepareItemEnchantEvent.class, EnchantingTable::onEnchantPrepare);
 		ItemEventRouter.on(TYPE, EnchantItemEvent.class, EnchantingTable::onEnchant);
+		ItemEventRouter.on(TYPE, ConfigChangeEvent.class, EnchantingTable::onConfigChange);
 	}
 
 	private static ItemStack createItem() {
@@ -448,7 +451,7 @@ public class EnchantingTable {
 
 		addEffects(plugin, player);
 
-		Bukkit.removeRecipe(RECIPE_KEY);
+		ItemRecipeRegistry.unregister(TYPE);
 	}
 
 	public static void onEnchantPrepare(ScarceLife plugin, PrepareItemEnchantEvent e) {
@@ -469,6 +472,35 @@ public class EnchantingTable {
 		Map<Enchantment, Integer> enchants = e.getEnchantsToAdd();
 		for (Enchantment enchant : e.getEnchantsToAdd().keySet()) {
 			enchants.put(enchant, 1);
+		}
+	}
+
+	public static void onConfigChange(ScarceLife plugin, ConfigChangeEvent<?> event) {
+		FileConfiguration config = plugin.getConfig();
+
+		if (event.getConfigKey().equals("items.enchanting-table.enabled")) {
+			if (event.getNewValue() == Boolean.TRUE) {
+				Bukkit.removeRecipe(NamespacedKey.minecraft("enchanting_table"));
+
+				if (config.getBoolean("items.enchanting-table.craftable")) {
+					if (ItemRecipeRegistry.get(TYPE) == null) {
+						ItemRecipeRegistry.register(TYPE, getRecipe());
+					}
+				} else {
+					ItemRecipeRegistry.unregister(TYPE);
+				}
+			} else {
+				ItemRecipeRegistry.unregister(TYPE);
+				if (ORIGINAL_RECIPE != null) Bukkit.addRecipe(ORIGINAL_RECIPE);
+			}
+		} else if (config.getBoolean("items.enchanting-table.enabled") && event.getConfigKey().equals("items.enchanting-table.craftable")) {
+			if (event.getNewValue() == Boolean.TRUE) {
+				if (ItemRecipeRegistry.get(TYPE) == null) {
+					ItemRecipeRegistry.register(TYPE, getRecipe());
+				}
+			} else {
+				ItemRecipeRegistry.unregister(TYPE);
+			}
 		}
 	}
 

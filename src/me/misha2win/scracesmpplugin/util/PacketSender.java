@@ -171,7 +171,7 @@ public class PacketSender {
 			int maxDurability = item.getMaxDamage();
 			int damageTaken = item.getDamageValue();
 			int durabilityRemaining = maxDurability - damageTaken;
-			itemComponent.append(Component.literal(" (" + durabilityRemaining + " / " + maxDurability + ")"));
+			itemComponent.append(Component.literal(" (" + durabilityRemaining + "/" + maxDurability + ")"));
 		}
 
 		Component messageComponent = Component.empty().append(serverPlayerComponent).append(Component.literal(" ")).append(itemComponent);
