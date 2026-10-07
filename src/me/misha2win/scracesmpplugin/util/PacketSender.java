@@ -9,6 +9,7 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.resources.Identifier;
@@ -189,9 +190,16 @@ public class PacketSender {
 			if (profile == null) {
 				Bukkit.getLogger().info("Could not resolve profile");
 			}
-
 			return Component.object(new PlayerSprite(profile, true), item.getDisplayName());
-		} else if (item.getItem() instanceof BlockItem block) {
+		}
+
+		Identifier modelKey = item.get(DataComponents.ITEM_MODEL);
+		if (modelKey != null) {
+			Identifier spriteKey = modelKey.withPrefix("item/");
+			return Component.object(new AtlasSprite(AtlasIds.ITEMS, spriteKey), item.getDisplayName());
+		}
+
+		if (item.getItem() instanceof BlockItem block) {
 			Identifier itemKey = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 			Identifier spriteKey = itemKey.withPrefix("block/");
 
@@ -202,6 +210,11 @@ public class PacketSender {
 		Identifier spriteKey = itemKey.withPrefix("item/");
 
 		return Component.object(new AtlasSprite(AtlasIds.ITEMS, spriteKey), item.getDisplayName());
+	}
+
+	public static void sendActionBar(Player player, String message) {
+		ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+		nmsPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.literal(message)));
 	}
 
 }

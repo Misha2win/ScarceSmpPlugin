@@ -30,12 +30,14 @@ import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 
 public class EdenApple {
 
 	public static final String TYPE = "eden_apple";
 	public static final NamespacedKey RECIPE_KEY = new NamespacedKey(ScarceLife.NAMESPACE, EdenApple.TYPE);
+	public static final NamespacedKey CRAFT_ADVANCEMENT_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "craft_eden_apple");
 
 	public static final String[] APPLE_LORE = {
 		ChatColor.DARK_RED + "An invaluable price paid.",
@@ -61,6 +63,37 @@ public class EdenApple {
 		ItemEventRouter.on(EdenApple.TYPE, PlayerItemConsumeEvent.class, EdenApple::onPlayerEat);
 		ItemEventRouter.on(EdenApple.TYPE, PrepareSmithingEvent.class, EdenApple::onPrepareSmithing);
 		ItemEventRouter.on(EdenApple.TYPE, SmithItemEvent.class, EdenApple::onSmithing);
+		AdvancementUtil.addAdvancement(CRAFT_ADVANCEMENT_KEY.getKey(), """
+			{
+				"parent": "scarcelife:pick_up_player_head",
+				"display": {
+					"icon": {
+						"id": "minecraft:apple",
+						"components": {
+							"minecraft:enchantment_glint_override": true,
+							"minecraft:custom_model_data": {
+								"floats": [1.0]
+							}
+						}
+					},
+					"title": {
+						"text": "The Forbidden Fruit"
+					},
+					"description": {
+						"text": "Craft an Eden Apple."
+					},
+					"frame": "challenge",
+					"show_toast": true,
+					"announce_to_chat": true,
+					"hidden": false
+				},
+				"criteria": {
+					"crafted_eden_apple": {
+						"trigger": "minecraft:impossible"
+					}
+				}
+			}
+		""");
 	}
 
 	public static String emphasize(String text, ChatColor color) {
@@ -83,9 +116,9 @@ public class EdenApple {
 		edenMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		edenMeta.addEnchant(Enchantment.MENDING, 1, false);
 
-		CustomModelDataComponent cmd = edenMeta.getCustomModelDataComponent();
-		cmd.setFloats(Arrays.asList(1f));
-		edenMeta.setCustomModelDataComponent(cmd);
+		CustomModelDataComponent customModel = edenMeta.getCustomModelDataComponent();
+		customModel.setFloats(Arrays.asList(1f));
+		edenMeta.setCustomModelDataComponent(customModel);
 
 		ItemUtil.setType(edenMeta, EdenApple.TYPE);
 
@@ -143,6 +176,10 @@ public class EdenApple {
 		player.sendMessage(ChatColor.GREEN + "You have received a life!");
 
 		Bukkit.getLogger().info(e.getPlayer().getName() + " has eaten an Eden Apple!");
+
+		if (playerLives == 0) {
+			AdvancementUtil.grantAdvancement(player, "ghost_revive");
+		}
 	}
 
 	public static void onPrepareSmithing(ScarceLife plugin, PrepareSmithingEvent e) {
@@ -154,8 +191,10 @@ public class EdenApple {
 		ItemEventRouter.dispatch(plugin, e, PlayerHead.TYPE);
 
 		HumanEntity crafter = e.getWhoClicked();
-		e.getWhoClicked().getWorld().playSound(crafter.getLocation(), Sound.ENTITY_WARDEN_NEARBY_CLOSEST, SoundCategory.PLAYERS, 1f, 0.1f);
-		e.getWhoClicked().getWorld().playSound(crafter.getLocation(), Sound.AMBIENT_CAVE, SoundCategory.PLAYERS, 1f, 0.1f);
+		crafter.getWorld().playSound(crafter.getLocation(), Sound.ENTITY_WARDEN_NEARBY_CLOSEST, SoundCategory.PLAYERS, 1f, 0.1f);
+		crafter.getWorld().playSound(crafter.getLocation(), Sound.AMBIENT_CAVE, SoundCategory.PLAYERS, 1f, 0.1f);
+
+		AdvancementUtil.grantAdvancement((Player) crafter, "crafted_eden_apple");
 	}
 
 }

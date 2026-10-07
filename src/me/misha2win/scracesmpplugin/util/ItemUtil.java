@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -91,6 +92,28 @@ public final class ItemUtil {
 
 	public static boolean getBoolean(PersistentDataHolder holder, NamespacedKey key) {
 		return holder.getPersistentDataContainer().get(key, PersistentDataType.BOOLEAN);
+	}
+
+	public static PersistentDataType<?, ?> hasKey(PersistentDataHolder holder, NamespacedKey key) {
+		PersistentDataContainer container = holder.getPersistentDataContainer();
+		if (container.has(key, PersistentDataType.STRING)) {
+			return PersistentDataType.STRING;
+		} else if (container.has(key, PersistentDataType.INTEGER)) {
+			return PersistentDataType.INTEGER;
+		} else if (container.has(key, PersistentDataType.BOOLEAN)) {
+			return PersistentDataType.BOOLEAN;
+		}
+		return null;
+	}
+
+	public static List<NamespacedKey> getScarceKeys(PersistentDataHolder holder) {
+		List<NamespacedKey> keys = new ArrayList<>();
+		for (NamespacedKey key : holder.getPersistentDataContainer().getKeys()) {
+			if (key.getNamespace().equals(ScarceLife.NAMESPACE)) {
+				keys.add(key);
+			}
+		}
+		return keys;
 	}
 
 }

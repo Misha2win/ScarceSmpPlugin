@@ -1,4 +1,4 @@
-package me.event;
+package me.misha2win.scracesmpplugin.event;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

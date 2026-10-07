@@ -7,8 +7,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import me.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class ScarceConfigCommandHandler implements CommandExecutor {

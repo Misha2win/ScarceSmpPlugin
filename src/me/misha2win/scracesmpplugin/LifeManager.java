@@ -14,6 +14,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import me.misha2win.scracesmpplugin.handler.DeadPlayerHandler;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 import me.misha2win.scracesmpplugin.util.ParticleMaker;
@@ -97,6 +98,11 @@ public final class LifeManager {
 
 	public static void addLife(Player player) {
 		Score playerScore = getLivesScoreboard(player);
+
+		if (playerScore.getScore() >= 8) {
+			AdvancementUtil.grantAdvancement(player, "nine_lives");
+		}
+
 		playerScore.setScore(playerScore.getScore() + 1);
 
 		ParticleMaker.createCylinder(Particle.HAPPY_VILLAGER, player.getLocation(), 0.8, 2);

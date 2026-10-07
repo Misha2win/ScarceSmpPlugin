@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
@@ -15,11 +16,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 
 public class UnstableMix {
@@ -40,6 +43,10 @@ public class UnstableMix {
 		ItemStack item = new ItemStack(Material.DRAGON_BREATH, 1);
 
 		ItemMeta meta = item.getItemMeta();
+
+		CustomModelDataComponent customModel = meta.getCustomModelDataComponent();
+		customModel.setFloats(Arrays.asList(1f));
+		meta.setCustomModelDataComponent(customModel);
 
 		meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Otherworldly Concoction");
 
@@ -80,6 +87,8 @@ public class UnstableMix {
 	}
 
 	public static void onCraft(ScarceLife plugin, CraftItemEvent e) {
+		AdvancementUtil.grantAdvancement((Player) e.getWhoClicked(), "otherworldly_concoction");
+
 		Bukkit.getScheduler().runTask(plugin, () -> {
 			e.getInventory().setItem(5, null);
 		});

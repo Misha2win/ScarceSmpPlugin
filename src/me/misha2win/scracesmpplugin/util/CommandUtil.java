@@ -200,6 +200,7 @@ public class CommandUtil {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			if (p.isOp()) p.sendMessage(message);
 		}
+		Bukkit.getLogger().info(ChatColor.stripColor(message));
 	}
 
 	public static void messageAllOpedPlayers(CommandSender sender, String message) {

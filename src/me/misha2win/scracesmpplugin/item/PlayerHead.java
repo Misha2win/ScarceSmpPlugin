@@ -14,6 +14,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
@@ -31,11 +32,14 @@ import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
 
 public class PlayerHead {
 
 	public static final String TYPE = "player_head";
+
+	public static final NamespacedKey ADVANCEMENT_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "pick_up_player_head");
 
 	public static final NamespacedKey USED_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "used");
 	public static final NamespacedKey DEATH_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "death");
@@ -51,6 +55,37 @@ public class PlayerHead {
 		ItemEventRouter.on(PlayerHead.TYPE, PrepareSmithingEvent.class, PlayerHead::onPrepareSmithing);
 		ItemEventRouter.on(PlayerHead.TYPE, SmithItemEvent.class, PlayerHead::onSmithing);
 		ItemEventRouter.on(PlayerHead.TYPE, PlayerItemConsumeEvent.class, PlayerHead::onPlayerItemConsume);
+		ItemEventRouter.on(PlayerHead.TYPE, EntityPickupItemEvent.class, PlayerHead::onPlayerPickUpItem);
+		AdvancementUtil.addAdvancement(ADVANCEMENT_KEY.getKey(), """
+			{
+				"parent": "scarcelife:root",
+				"display": {
+					"icon": {
+						"id": "minecraft:player_head",
+						"components": {
+							"minecraft:profile": {
+								"id": [-2141333111,-1931916647,-1651777880,1445270630]
+							}
+						}
+					},
+					"title": {
+						"text": "Spoils of War"
+					},
+					"description": {
+						"text": "Pick up a player head."
+					},
+					"frame": "task",
+					"show_toast": true,
+					"announce_to_chat": true,
+					"hidden": false
+				},
+				"criteria": {
+					"pick_up_player_head": {
+						"trigger": "minecraft:impossible"
+					}
+				}
+			}
+		""");
 	}
 
 	private static ItemStack createItem(ScarceLife plugin, Player player, String death) {
@@ -222,7 +257,7 @@ public class PlayerHead {
 
 		ItemMeta itemMeta = e.getItem().getItemMeta();
 
-		boolean used =ItemUtil.getBoolean(itemMeta, PlayerHead.USED_KEY);
+		boolean used = ItemUtil.getBoolean(itemMeta, PlayerHead.USED_KEY);
 		String uuid = ItemUtil.getString(itemMeta, PlayerHead.UUID_KEY);
 		int lifes = ItemUtil.getInteger(itemMeta, PlayerHead.LIVES_KEY);
 		String death = ItemUtil.getString(itemMeta, PlayerHead.DEATH_KEY);
@@ -239,6 +274,18 @@ public class PlayerHead {
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			e.getPlayer().getInventory().addItem(usedHead);
 		}, 1L);
+	}
+
+	public static void onPlayerPickUpItem(ScarceLife plugin, EntityPickupItemEvent e) {
+		if (!(e.getEntity() instanceof Player)) return;
+		Player player = (Player) e.getEntity();
+
+		ItemMeta itemMeta = e.getItem().getItemStack().getItemMeta();
+		boolean used = ItemUtil.getBoolean(itemMeta, PlayerHead.USED_KEY);
+
+		if (!used) {
+			AdvancementUtil.grantAdvancement(player, "pick_up_player_head");
+		}
 	}
 
 }

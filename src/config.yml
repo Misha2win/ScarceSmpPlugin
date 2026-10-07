@@ -73,3 +73,7 @@ developer: # Developer QOL debugging features. Do not touch unless you know what
     enabled: false # This is extremely dangerous and should not be touched.
   op-only: # Makes it so that only opped players can log on
     enabled: false
+
+resourcepack:
+  host: "scarcesmp.net"
+  port: 8102 # Port for the resource pack server.

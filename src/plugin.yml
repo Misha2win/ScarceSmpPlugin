@@ -56,3 +56,7 @@ commands:
   item:
     description: shows information about the item in your hand to allow you to prove you have it or to show off its tooltip
     usage: "Usage: /item"
+
+  modifyscarce:
+    description: allows an oped player to modify scarce item data
+    usage: "Usage: /modifyscarce (get | set) (key) [value]"

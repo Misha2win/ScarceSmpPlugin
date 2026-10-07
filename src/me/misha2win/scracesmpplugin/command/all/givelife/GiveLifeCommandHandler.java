@@ -14,7 +14,6 @@ import me.misha2win.scracesmpplugin.util.CommandUtil;
 
 public class GiveLifeCommandHandler implements CommandExecutor {
 
-	@SuppressWarnings("unused")
 	private ScarceLife plugin;
 
 	public GiveLifeCommandHandler(ScarceLife plugin) {

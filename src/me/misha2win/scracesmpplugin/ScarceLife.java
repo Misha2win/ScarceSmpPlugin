@@ -1,9 +1,11 @@
 package me.misha2win.scracesmpplugin;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
@@ -19,12 +21,15 @@ import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigComma
 import me.misha2win.scracesmpplugin.command.admin.scarceconfig.ScarceConfigTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.scarcegive.ScarceGiveCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.scarcegive.ScarceGiveTabCompleter;
+import me.misha2win.scracesmpplugin.command.admin.scarcemodify.ModifyScarceCommandHandler;
+import me.misha2win.scracesmpplugin.command.admin.scarcemodify.ModifyScarceTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.sl.SLTabCompleter;
 import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpCommandHandler;
 import me.misha2win.scracesmpplugin.command.admin.tp.ScarceTpTabCompleter;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeCommandHandler;
 import me.misha2win.scracesmpplugin.command.all.givelife.GiveLifeTabCompleter;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.CommandUtil;
 import net.minecraft.server.MinecraftServer;
 import me.misha2win.scracesmpplugin.command.all.item.ItemCommandHandler;
@@ -45,10 +50,14 @@ import me.misha2win.scracesmpplugin.handler.PlayerJoinHandler;
 import me.misha2win.scracesmpplugin.handler.PlayerQuitHandler;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.resourcepack.ResourcePackServer;
 
 public class ScarceLife extends JavaPlugin {
 
 	public static final String NAMESPACE = "scarcelife";
+	public static final NamespacedKey GIVE_LIFE_ADVANCEMENT_KEY = new NamespacedKey(ScarceLife.NAMESPACE, "give_life");
+
+	private ResourcePackServer resourcePackServer;
 
 	@Override
 	public void onEnable() {
@@ -60,6 +69,7 @@ public class ScarceLife extends JavaPlugin {
 
 		ItemRegistry.registerItems();
 		EnchantingTable.onEnable(this);
+		AdvancementUtil.createAdvancements(this);
 
 		String versionString = "Version 26.3";
 
@@ -84,6 +94,7 @@ public class ScarceLife extends JavaPlugin {
 		registerCommand("tpa", new TpaCommandHandler(this), new TpaTabCompleter(this));
 		registerCommand("scarcetp", new ScarceTpCommandHandler(this), new ScarceTpTabCompleter(this));
 		registerCommand("item", new ItemCommandHandler(this), new ItemTabCompleter(this));
+		registerCommand("modifyscarce", new ModifyScarceCommandHandler(this), new ModifyScarceTabCompleter(this));
 
 		// Setup scoreboard
 		setupScoreboard();
@@ -92,7 +103,6 @@ public class ScarceLife extends JavaPlugin {
 
 		Bukkit.getScheduler().runTaskTimer(this, () -> {
 			MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-
 			double mspt = server.getAverageTickTimeNanos() / 1_000_000.0;
 			double tps = Math.min(20.0, 1000.0 / mspt);
 
@@ -103,11 +113,28 @@ public class ScarceLife extends JavaPlugin {
 			);
 			CommandUtil.setHeader(header);
 		}, 100, 100);
+
+		resourcePackServer = new ResourcePackServer();
+
+		try {
+			resourcePackServer.start(config.getInt("resourcepack.port"));
+		} catch (IOException e) {
+			getLogger().severe("Failed to start resource pack server");
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void onDisable() {
+		if (resourcePackServer != null) {
+			resourcePackServer.stop();
+		}
+
 		CommandUtil.messageAllOpedPlayers(ChatColor.GREEN + "SL plugin is disabled!");
+	}
+
+	public ResourcePackServer getResourcePackServer() {
+		return resourcePackServer;
 	}
 
 	public void registerCommand(String commandName, CommandExecutor ce, TabCompleter tc, String... aliases) {

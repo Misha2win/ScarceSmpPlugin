@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -17,10 +18,11 @@ import org.bukkit.event.inventory.SmithItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import me.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.ScarceLife;
+import me.misha2win.scracesmpplugin.event.ConfigChangeEvent;
 import me.misha2win.scracesmpplugin.item.PlayerHead;
 import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
@@ -118,6 +120,16 @@ public class CustomItemEventHandler implements Listener {
 
 		String type = key.substring(6, key.indexOf(".", 6)).replaceAll("-", "_");
 		ItemEventRouter.dispatch(plugin, e, type);
+	}
+
+	@EventHandler
+	public void onEntityItemPickup(EntityPickupItemEvent e) {
+		ItemEventRouter.dispatch(plugin, e, e.getItem().getItemStack());
+	}
+
+	@EventHandler
+	public void onPlayerItemHeld(PlayerItemHeldEvent e) {
+		ItemEventRouter.dispatch(plugin, e, e.getPlayer().getInventory().getItem(e.getNewSlot()));
 	}
 
 }

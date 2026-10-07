@@ -16,6 +16,7 @@ import me.misha2win.scracesmpplugin.item.GhostBlink;
 import me.misha2win.scracesmpplugin.item.GhostDiamond;
 import me.misha2win.scracesmpplugin.item.GhostRespawn;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
+import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 
 public class PlayerDeathHandler implements Listener {
 
@@ -51,7 +52,12 @@ public class PlayerDeathHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent e) {
-		if (LifeManager.getLives(e.getPlayer()) == 0) {
+		Bukkit.getScheduler().runTask(plugin, () -> {
+			AdvancementUtil.grantAdvancement(e.getPlayer(),"first_death");
+		});
+
+		int lives = LifeManager.getLives(e.getPlayer());
+		if (lives == 0) {
 			Bukkit.getScheduler().runTask(plugin, () -> {
 				FileConfiguration config = this.plugin.getConfig();
 
@@ -83,6 +89,10 @@ public class PlayerDeathHandler implements Listener {
 				} else {
 					e.getPlayer().sendMessage(ChatColor.GREEN + "You may now fly around!");
 				}
+			});
+		} else if (lives == 1) {
+			Bukkit.getScheduler().runTask(plugin, () -> {
+				AdvancementUtil.grantAdvancement(e.getPlayer(),"one_life");
 			});
 		}
 	}

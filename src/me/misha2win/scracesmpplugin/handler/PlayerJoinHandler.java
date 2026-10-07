@@ -2,15 +2,18 @@ package me.misha2win.scracesmpplugin.handler;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Keyed;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.Recipe;
 
 import me.misha2win.scracesmpplugin.LifeManager;
 import me.misha2win.scracesmpplugin.ScarceLife;
 import me.misha2win.scracesmpplugin.item.EnchantingTable;
+import me.misha2win.scracesmpplugin.item.registry.ItemRecipeRegistry;
 import me.misha2win.scracesmpplugin.util.PacketSender;
 
 public class PlayerJoinHandler implements Listener {
@@ -59,6 +62,16 @@ public class PlayerJoinHandler implements Listener {
 				player.sendMessage(ChatColor.GREEN + "You can use the tab list to see where the enchanting table is!");
 			});
 		}
+
+		for (String recipeType : ItemRecipeRegistry.getRegisteredRecipes()) {
+			Recipe recipe = ItemRecipeRegistry.get(recipeType);
+			player.discoverRecipe(((Keyed) recipe).getKey());
+		}
+
+		String host = plugin.getConfig().getString("resourcepack.host");
+		int port = plugin.getConfig().getInt("resourcepack.port");
+		byte[] sha1Hash = plugin.getResourcePackServer().getResourcePackSha1();
+		player.setResourcePack("http://" + host + ":" + port + "/resourcepack.zip", sha1Hash, true);
 	}
 
 }
