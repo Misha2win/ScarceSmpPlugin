@@ -45,6 +45,10 @@ public class ItemEventRouter {
 		}
 
 		BiConsumer<ScarceLife, Event> handler = findHandler(handlers, event.getClass());
+		if (handler == null) {
+			Bukkit.getLogger().info(String.format("Could not find any event handlers for '%s' and event '%s'", itemId, event.getClass().getSimpleName()));
+			return;
+		}
 
 		handler.accept(plugin, event);
 	}

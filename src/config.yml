@@ -30,6 +30,10 @@ items:
   enchantments:
     weak-only: false # If true, will make sure players can't obtain enchantments above level 1
 
+    experience-collector: # Item that collects experience levels from the player.
+      enabled: true # If true, the experience collector item is available.
+      max-levels: 30 # Maximum number of experience levels the collector can hold. use -1 for uncapped.
+
   blink: # Item that allows ghosts to blink (temporary spectator mode).
     enabled: true
     duration-ticks: 15 # 0.75 seconds

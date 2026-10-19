@@ -8,17 +8,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.inventory.meta.components.UseCooldownComponent;
@@ -85,8 +84,7 @@ public class ExpCollector {
 			ChatColor.DARK_GRAY + "(" + exp + " Experience)"
 		));
 
-		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-		meta.addEnchant(Enchantment.MENDING, 1, false);
+		meta.setEnchantmentGlintOverride(true);
 
 		ItemUtil.setType(meta, TYPE);
 		ItemUtil.setInteger(meta, EXP_KEY, exp);
@@ -126,6 +124,10 @@ public class ExpCollector {
 			ItemUtil.setBoolean(e.getItem().getItemMeta(), MODE_KEY, true);
 		}
 
+		int rawMaxBookLevels = plugin.getConfig().getInt("items.experience-collector.max-levels");
+		int maxBookLevels = rawMaxBookLevels < 0 ? Integer.MAX_VALUE : rawMaxBookLevels;
+		int maxBookExp = getCumulativeExp(maxBookLevels, 0);
+
 		boolean importMode = ItemUtil.getBoolean(e.getItem().getItemMeta(), MODE_KEY);
 		if (importMode) {
 			if (playerExp <= 0) {
@@ -137,7 +139,7 @@ public class ExpCollector {
 			if (player.isSneaking()) {
 				ExpInfo bookLevel = getLevels(bookExp);
 				int expNeededToNextTen = (getCumulativeExp((bookLevel.level / 10 + 1) * 10, 0) - bookExp);
-				int expTransferred = Math.min(playerExp, expNeededToNextTen);
+				int expTransferred = Math.min(playerExp, Math.min(expNeededToNextTen, maxBookExp - bookExp));
 				ExpInfo remainingExpInfo = getLevels(playerExp - expTransferred);
 
 				player.setLevel(remainingExpInfo.level);
@@ -145,14 +147,29 @@ public class ExpCollector {
 
 				ItemStack newItem = createItem(bookExp + expTransferred, importMode);
 				Bukkit.getScheduler().runTask(plugin, () -> {
+					ItemMeta meta = newItem.getItemMeta();
+					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
+						dmg.setMaxDamage(maxBookExp + 1);
+						dmg.setDamage(maxBookExp - (bookExp + expTransferred) + 1);
+						newItem.setItemMeta(meta);
+					}
 					e.getPlayer().getInventory().setItem(slot, newItem);
 				});
 			} else {
-				player.setExp(0);
-				player.setLevel(0);
+				int expTransferred = Math.min(playerExp, maxBookExp - bookExp);
+				ExpInfo remainingExpInfo = getLevels(playerExp - expTransferred);
 
-				ItemStack newItem = createItem(bookExp + playerExp, false);
+				player.setLevel(remainingExpInfo.level);
+				player.setExp((float) remainingExpInfo.expForLevel / remainingExpInfo.expToNext);
+
+				ItemStack newItem = createItem(bookExp + expTransferred, false);
 				Bukkit.getScheduler().runTask(plugin, () -> {
+					ItemMeta meta = newItem.getItemMeta();
+					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
+						dmg.setMaxDamage(maxBookExp + 1);
+						dmg.setDamage(maxBookExp - (bookExp + expTransferred) + 1);
+						newItem.setItemMeta(meta);
+					}
 					e.getPlayer().getInventory().setItem(slot, newItem);
 				});
 			}
@@ -174,6 +191,12 @@ public class ExpCollector {
 
 				ItemStack newItem = createItem(bookExp - expTransferred, importMode);
 				Bukkit.getScheduler().runTask(plugin, () -> {
+					ItemMeta meta = newItem.getItemMeta();
+					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
+						dmg.setMaxDamage(maxBookExp + 1);
+						dmg.setDamage(maxBookExp - (bookExp - expTransferred) + 1);
+						newItem.setItemMeta(meta);
+					}
 					e.getPlayer().getInventory().setItem(slot, newItem);
 				});
 			} else {
@@ -183,6 +206,12 @@ public class ExpCollector {
 
 				ItemStack newItem = createItem(0, importMode);
 				Bukkit.getScheduler().runTask(plugin, () -> {
+					ItemMeta meta = newItem.getItemMeta();
+					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
+						dmg.setMaxDamage(maxBookExp + 1);
+						dmg.setDamage(maxBookExp + 1);
+						newItem.setItemMeta(meta);
+					}
 					e.getPlayer().getInventory().setItem(slot, newItem);
 				});
 			}
@@ -214,6 +243,17 @@ public class ExpCollector {
 			boolean mode = ItemUtil.getBoolean(itemMeta, MODE_KEY);
 			PacketSender.sendActionBar(e.getPlayer(), mode ? IMPORT_TEXT : EXPORT_TEXT);
 		}
+	}
+
+	public static void onCraftItem(ScarceLife plugin, CraftItemEvent e) {
+		AdvancementUtil.grantAdvancement((Player) e.getWhoClicked(), "craft_knowledge_book");
+	}
+
+	public static void onPlayerItemHeld(ScarceLife plugin, PlayerItemHeldEvent e) {
+		ItemStack item = e.getPlayer().getInventory().getItem(e.getNewSlot());
+		ItemMeta itemMeta = item.getItemMeta();
+		boolean mode = ItemUtil.getBoolean(itemMeta, MODE_KEY);
+		PacketSender.sendActionBar(e.getPlayer(), mode ? IMPORT_TEXT : EXPORT_TEXT);
 	}
 
 	private static void applyModel(ItemMeta meta, boolean bookHasExp, boolean importMode) {
@@ -280,17 +320,6 @@ public class ExpCollector {
 			remaining -= expToNext;
 			level++;
 		}
-	}
-
-	public static void onCraftItem(ScarceLife plugin, CraftItemEvent e) {
-		AdvancementUtil.grantAdvancement((Player) e.getWhoClicked(), "craft_knowledge_book");
-	}
-
-	public static void onPlayerItemHeld(ScarceLife plugin, PlayerItemHeldEvent e) {
-		ItemStack item = e.getPlayer().getInventory().getItem(e.getNewSlot());
-		ItemMeta itemMeta = item.getItemMeta();
-		boolean mode = ItemUtil.getBoolean(itemMeta, MODE_KEY);
-		PacketSender.sendActionBar(e.getPlayer(), mode ? IMPORT_TEXT : EXPORT_TEXT);
 	}
 
 }
