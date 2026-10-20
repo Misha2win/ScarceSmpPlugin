@@ -36,7 +36,7 @@ public class ItemCommandHandler implements CommandExecutor {
 			return true;
 		}
 
-		PacketSender.sendItemTooltipChat(player);
+		PacketSender.sendHeldItemTooltipChat(player);
 
 		return true;
 	}

@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -154,12 +155,30 @@ public class PacketSender {
 		((CraftPlayer) player).getHandle().connection.sendPacket(teamPacket);
 	}
 
-	public static void sendItemTooltipChat(Player player) {
+	public static void sendHeldItemTooltipChat(Player player) {
 		ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
 		ItemStack item = serverPlayer.getMainHandItem();
 
 		Component serverPlayerComponent = Component.literal("<").append(PlayerTeam.formatNameForTeam(serverPlayer.getTeam(), serverPlayer.getName())).append(Component.literal(">"));
+		MutableComponent itemComponent = getItemComponent(item);
 
+		Component messageComponent = Component.empty().append(serverPlayerComponent).append(Component.literal(" ")).append(itemComponent);
+
+		ClientboundSystemChatPacket msg = new ClientboundSystemChatPacket(messageComponent, false);
+
+		for (Player other : Bukkit.getOnlinePlayers()) {
+			((CraftPlayer) other).getHandle().connection.sendPacket(msg);
+		}
+	}
+
+	public static void sendItemTooltipChat(org.bukkit.inventory.ItemStack bukkitItem, Player player) {
+		ItemStack item = CraftItemStack.asNMSCopy(bukkitItem);
+		MutableComponent itemComponent = getItemComponent(item);
+		ClientboundSystemChatPacket msg = new ClientboundSystemChatPacket(itemComponent, false);
+		((CraftPlayer) player).getHandle().connection.sendPacket(msg);
+	}
+
+	private static MutableComponent getItemComponent(ItemStack item) {
 		MutableComponent itemComponent = getSpriteComponent(item).withStyle(style -> {
 			return style.withHoverEvent(
 				new HoverEvent.ShowItem(ItemStackTemplate.fromStack(item))
@@ -175,13 +194,7 @@ public class PacketSender {
 			itemComponent.append(Component.literal(" (" + durabilityRemaining + "/" + maxDurability + ")"));
 		}
 
-		Component messageComponent = Component.empty().append(serverPlayerComponent).append(Component.literal(" ")).append(itemComponent);
-
-		ClientboundSystemChatPacket msg = new ClientboundSystemChatPacket(messageComponent, false);
-
-		for (Player other : Bukkit.getOnlinePlayers()) {
-			((CraftPlayer) other).getHandle().connection.sendPacket(msg);
-		}
+		return itemComponent;
 	}
 
 	private static MutableComponent getSpriteComponent(ItemStack item) {

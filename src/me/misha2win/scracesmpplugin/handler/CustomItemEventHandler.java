@@ -1,5 +1,6 @@
 package me.misha2win.scracesmpplugin.handler;
 
+import org.bukkit.block.Skull;
 import org.bukkit.block.TileState;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerItemMendEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.misha2win.scracesmpplugin.ScarceLife;
@@ -45,6 +47,21 @@ public class CustomItemEventHandler implements Listener {
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
+		// This path only exists for PlayerHeads. Other TileState interactions must not be dispatched
+		// due to the assumptions that handlers of PlayerInteractEvent have that e.getItem() is not
+		// null and is a the custom item that the handler is registered for.
+		if (e.getClickedBlock() != null && e.getClickedBlock().getState() instanceof Skull skull) {
+			try {
+				ItemEventRouter.dispatch(plugin, e, ItemUtil.getType(skull));
+			} catch (NullPointerException ex) {
+				// Silent catch for heads with out dated data.
+			}
+			// Return here to avoid dispatching the event twice as PlayerHead does not expect a
+			// held item event to be dispatched for it. This will also prevent dispatching any
+			// interaction events if the player is holding a custom item and looking at a skull.
+			return;
+		}
+
 		ItemEventRouter.dispatch(plugin, e, e.getItem());
 	}
 
@@ -130,6 +147,11 @@ public class CustomItemEventHandler implements Listener {
 	@EventHandler
 	public void onPlayerItemHeld(PlayerItemHeldEvent e) {
 		ItemEventRouter.dispatch(plugin, e, e.getPlayer().getInventory().getItem(e.getNewSlot()));
+	}
+
+	@EventHandler
+	public void onItemMend(PlayerItemMendEvent e) {
+		ItemEventRouter.dispatch(plugin, e, e.getItem());
 	}
 
 }

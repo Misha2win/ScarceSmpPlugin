@@ -8,10 +8,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.Skull;
 import org.bukkit.block.TileState;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -19,7 +21,9 @@ import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.inventory.SmithItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmithingInventory;
@@ -34,6 +38,7 @@ import me.misha2win.scracesmpplugin.item.registry.ItemEventRouter;
 import me.misha2win.scracesmpplugin.item.registry.ItemRegistry;
 import me.misha2win.scracesmpplugin.util.AdvancementUtil;
 import me.misha2win.scracesmpplugin.util.ItemUtil;
+import me.misha2win.scracesmpplugin.util.PacketSender;
 
 public class PlayerHead {
 
@@ -56,6 +61,7 @@ public class PlayerHead {
 		ItemEventRouter.on(PlayerHead.TYPE, SmithItemEvent.class, PlayerHead::onSmithing);
 		ItemEventRouter.on(PlayerHead.TYPE, PlayerItemConsumeEvent.class, PlayerHead::onPlayerItemConsume);
 		ItemEventRouter.on(PlayerHead.TYPE, EntityPickupItemEvent.class, PlayerHead::onPlayerPickUpItem);
+		ItemEventRouter.on(PlayerHead.TYPE, PlayerInteractEvent.class, PlayerHead::onPlayerInteract);
 		AdvancementUtil.addAdvancement(ADVANCEMENT_KEY.getKey(), """
 			{
 				"parent": "scarcelife:root",
@@ -286,6 +292,22 @@ public class PlayerHead {
 		if (!used) {
 			AdvancementUtil.grantAdvancement(player, "pick_up_player_head");
 		}
+	}
+
+	public static void onPlayerInteract(ScarceLife plugin, PlayerInteractEvent e) {
+		if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+		if (e.getHand() != EquipmentSlot.HAND) return;
+		if (e.getClickedBlock() == null) return;
+		if (!(e.getClickedBlock().getState() instanceof Skull tile)) return;
+		if (!TYPE.equals(ItemUtil.getType(tile))) return;
+
+		UUID uuid = UUID.fromString(ItemUtil.getString(tile, PlayerHead.UUID_KEY));
+		int lives = ItemUtil.getInteger(tile, PlayerHead.LIVES_KEY);
+		String death = ItemUtil.getString(tile, PlayerHead.DEATH_KEY);
+		boolean used = ItemUtil.getBoolean(tile, PlayerHead.USED_KEY);
+
+		ItemStack replacement = PlayerHead.createItem(plugin, uuid, lives, death, used);
+		PacketSender.sendItemTooltipChat(replacement, e.getPlayer());
 	}
 
 }

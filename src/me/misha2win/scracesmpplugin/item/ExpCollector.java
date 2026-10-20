@@ -1,6 +1,5 @@
 package me.misha2win.scracesmpplugin.item;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -8,12 +7,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerItemMendEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -49,6 +52,7 @@ public class ExpCollector {
 		ItemEventRouter.on(TYPE, CraftItemEvent.class, ExpCollector::onCraftItem);
 		ItemEventRouter.on(TYPE, PlayerInteractEvent.class, ExpCollector::onPlayerInteract);
 		ItemEventRouter.on(TYPE, PlayerItemHeldEvent.class, ExpCollector::onPlayerItemHeld);
+		ItemEventRouter.on(TYPE, PlayerItemMendEvent.class, ExpCollector::onPlayerItemMend);
 	}
 
 	private static ItemStack createItem() {
@@ -78,13 +82,10 @@ public class ExpCollector {
 
 		meta.setMaxStackSize(1);
 
-		ExpInfo totalExp = getLevels(exp);
-		meta.setLore(Arrays.asList(
-			ChatColor.GRAY + "Worth " + totalExp.level + " Levels",
-			ChatColor.DARK_GRAY + "(" + exp + " Experience)"
-		));
+		meta.setLore(getBookLore(exp));
 
-		meta.setEnchantmentGlintOverride(true);
+		meta.addEnchant(Enchantment.MENDING, 1, false);
+		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
 		ItemUtil.setType(meta, TYPE);
 		ItemUtil.setInteger(meta, EXP_KEY, exp);
@@ -93,6 +94,14 @@ public class ExpCollector {
 		item.setItemMeta(meta);
 
 		return item;
+	}
+
+	private static List<String> getBookLore(int exp) {
+		ExpInfo totalExp = getLevels(exp);
+		return List.of(
+			ChatColor.GRAY + "Worth " + totalExp.level + " Levels",
+			ChatColor.DARK_GRAY + "(" + exp + " Experience)"
+		);
 	}
 
 	private static Recipe getRecipe() {
@@ -115,7 +124,8 @@ public class ExpCollector {
 	public static void onPlayerConsume(ScarceLife plugin, PlayerItemConsumeEvent e) {
 		Player player = e.getPlayer();
 		int playerExp = getCumulativeExp(player.getLevel(), Math.round(player.getExp() * player.getExpToLevel()));
-		int slot = e.getPlayer().getInventory().getHeldItemSlot();
+
+		EquipmentSlot slot = e.getHand();
 
 		int bookExp = ItemUtil.getInteger(e.getItem().getItemMeta(), EXP_KEY);
 
@@ -145,16 +155,7 @@ public class ExpCollector {
 				player.setLevel(remainingExpInfo.level);
 				player.setExp((float) remainingExpInfo.expForLevel / remainingExpInfo.expToNext);
 
-				ItemStack newItem = createItem(bookExp + expTransferred, importMode);
-				Bukkit.getScheduler().runTask(plugin, () -> {
-					ItemMeta meta = newItem.getItemMeta();
-					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
-						dmg.setMaxDamage(maxBookExp + 1);
-						dmg.setDamage(maxBookExp - (bookExp + expTransferred) + 1);
-						newItem.setItemMeta(meta);
-					}
-					e.getPlayer().getInventory().setItem(slot, newItem);
-				});
+				queueBookReplacement(plugin, player, slot, bookExp + expTransferred, importMode, rawMaxBookLevels, maxBookExp);
 			} else {
 				int expTransferred = Math.min(playerExp, maxBookExp - bookExp);
 				ExpInfo remainingExpInfo = getLevels(playerExp - expTransferred);
@@ -162,16 +163,7 @@ public class ExpCollector {
 				player.setLevel(remainingExpInfo.level);
 				player.setExp((float) remainingExpInfo.expForLevel / remainingExpInfo.expToNext);
 
-				ItemStack newItem = createItem(bookExp + expTransferred, false);
-				Bukkit.getScheduler().runTask(plugin, () -> {
-					ItemMeta meta = newItem.getItemMeta();
-					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
-						dmg.setMaxDamage(maxBookExp + 1);
-						dmg.setDamage(maxBookExp - (bookExp + expTransferred) + 1);
-						newItem.setItemMeta(meta);
-					}
-					e.getPlayer().getInventory().setItem(slot, newItem);
-				});
+				queueBookReplacement(plugin, player, slot, bookExp + expTransferred, false, rawMaxBookLevels, maxBookExp);
 			}
 			player.playSound(player, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.0f);
 		} else {
@@ -189,34 +181,29 @@ public class ExpCollector {
 				player.setLevel(expInfo.level);
 				player.setExp((float) expInfo.expForLevel / expInfo.expToNext);
 
-				ItemStack newItem = createItem(bookExp - expTransferred, importMode);
-				Bukkit.getScheduler().runTask(plugin, () -> {
-					ItemMeta meta = newItem.getItemMeta();
-					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
-						dmg.setMaxDamage(maxBookExp + 1);
-						dmg.setDamage(maxBookExp - (bookExp - expTransferred) + 1);
-						newItem.setItemMeta(meta);
-					}
-					e.getPlayer().getInventory().setItem(slot, newItem);
-				});
+				queueBookReplacement(plugin, player, slot, bookExp - expTransferred, importMode, rawMaxBookLevels, maxBookExp);
 			} else {
 				ExpInfo expInfo = getLevels(playerExp + bookExp);
 				player.setLevel(expInfo.level);
 				player.setExp((float) expInfo.expForLevel / expInfo.expToNext);
 
-				ItemStack newItem = createItem(0, importMode);
-				Bukkit.getScheduler().runTask(plugin, () -> {
-					ItemMeta meta = newItem.getItemMeta();
-					if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
-						dmg.setMaxDamage(maxBookExp + 1);
-						dmg.setDamage(maxBookExp + 1);
-						newItem.setItemMeta(meta);
-					}
-					e.getPlayer().getInventory().setItem(slot, newItem);
-				});
+				queueBookReplacement(plugin, player, slot, 0, importMode, rawMaxBookLevels, maxBookExp);
 			}
 			player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 		}
+	}
+
+	private static void queueBookReplacement(ScarceLife plugin, Player player, EquipmentSlot slot, int bookExp, boolean importMode, int rawMaxBookLevels, int maxBookExp) {
+		ItemStack newItem = createItem(bookExp, importMode);
+		Bukkit.getScheduler().runTask(plugin, () -> {
+			ItemMeta meta = newItem.getItemMeta();
+			if (rawMaxBookLevels > 0 && meta instanceof Damageable dmg) {
+				dmg.setMaxDamage(maxBookExp);
+				dmg.setDamage(maxBookExp - bookExp);
+				newItem.setItemMeta(meta);
+			}
+			player.getInventory().setItem(slot, newItem);
+		});
 	}
 
 	public static void onPlayerInteract(ScarceLife plugin, PlayerInteractEvent e) {
@@ -234,7 +221,7 @@ public class ExpCollector {
 				ItemUtil.setBoolean(itemMeta, MODE_KEY, newMode);
 				item.setItemMeta(itemMeta);
 
-				e.getPlayer().setCooldown(item, 3);
+				e.getPlayer().setCooldown(item, 2);
 				PacketSender.sendActionBar(e.getPlayer(), newMode ? IMPORT_TEXT : EXPORT_TEXT);
 			}
 		} else if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -254,6 +241,29 @@ public class ExpCollector {
 		ItemMeta itemMeta = item.getItemMeta();
 		boolean mode = ItemUtil.getBoolean(itemMeta, MODE_KEY);
 		PacketSender.sendActionBar(e.getPlayer(), mode ? IMPORT_TEXT : EXPORT_TEXT);
+	}
+
+	public static void onPlayerItemMend(ScarceLife plugin, PlayerItemMendEvent e) {
+		ItemStack item = e.getItem();
+		ItemMeta meta = item.getItemMeta();
+
+		int repairAmount = e.getRepairAmount();
+		int expGained = repairAmount / 2 + repairAmount % 2;
+		e.setRepairAmount(expGained * 2);
+
+		int bookExp = ItemUtil.getInteger(meta, EXP_KEY);
+		int newBookExp = bookExp + expGained;
+
+		ItemUtil.setInteger(meta, EXP_KEY, newBookExp);
+		meta.setLore(getBookLore(newBookExp));
+		item.setItemMeta(meta);
+
+		Bukkit.getScheduler().runTask(plugin, () -> {
+			if (meta instanceof Damageable dmg) {
+				dmg.setDamage(dmg.getDamage() - expGained);
+				item.setItemMeta(meta);
+			}
+		});
 	}
 
 	private static void applyModel(ItemMeta meta, boolean bookHasExp, boolean importMode) {
