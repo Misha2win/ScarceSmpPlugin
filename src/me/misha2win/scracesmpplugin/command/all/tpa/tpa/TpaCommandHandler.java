@@ -66,7 +66,7 @@ public class TpaCommandHandler implements CommandExecutor {
 
 		p.sendMessage(ChatColor.GREEN + "Teleport request sent to " + p2.getDisplayName() + ChatColor.GREEN + ".");
 		p.sendMessage(ChatColor.WHITE + "They have " + ChatColor.GREEN + "60 seconds" + ChatColor.WHITE + " to accept! Or you can cancel your request with " + ChatColor.GREEN + "/tpcancel"  + ChatColor.WHITE + ".");
-		p2.sendMessage(p2.getDisplayName() + ChatColor.GREEN + " has requested to teleport to you!");
+		p2.sendMessage(p.getDisplayName() + ChatColor.GREEN + " has requested to teleport to you!");
 		p2.sendMessage(ChatColor.WHITE + "Type " + ChatColor.GREEN + "/tpaccept" + ChatColor.WHITE + " to accept or " + ChatColor.GREEN + "/tpdeny" + ChatColor.WHITE + " to deny their teleport request. If you have multiple requests then specify the name of the person you want to accept or deny.");
 
 		REQUESTS.put(p, p2);
